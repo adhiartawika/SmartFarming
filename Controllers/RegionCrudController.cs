@@ -17,7 +17,7 @@ namespace backend.Controllers
 
         [HttpGet]
         public async Task<IEnumerable<RegionsItemDto>> ShowRegion(){
-            return(await this.context.Regions.ToListAsync()).Select(x => new RegionsItemDto{
+            return (await this.context.Regions.ToListAsync()).Select(x => new RegionsItemDto{
                 Id = x.Id,
                 Name = x.Name,
                 RegionDescription = x.RegionDescription,

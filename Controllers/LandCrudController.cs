@@ -12,7 +12,7 @@ namespace backend.Controllers
     {
         private readonly AppDbContext context;
         private readonly ICurrentUserService currentUser;
-        public LandCrudController(AppDbContext context,  ICurrentUserService currentUser)
+        public LandCrudController(AppDbContext context, ICurrentUserService currentUser)
         {
             this.context = context;
             this.currentUser = currentUser;
@@ -20,20 +20,50 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<IEnumerable<LandItemDto>> ShowLand()
         {
-            return (await context.Lands.ToListAsync()).Select(x => new LandItemDto
+            return (await context.Lands.Include(x => x.Region).Include(x => x.Region).ThenInclude(x => x.Mikrokontroller).ToListAsync())
+            .Select(x =>
             {
-                Id = x.Id,
-                Name = x.Name,
-                Code = x.Code,
-                Address = x.Address,
-                Photo = x.Photo,
-                CordinateLand = x.CordinateLand   
+                return new LandItemDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Code = x.Code,
+                    Address = x.Address,
+                    Photo = x.Photo,
+                    CordinateLand = x.CordinateLand,
+                    NRegion=x.Region.Count(),
+                    NMicrocontroller = x.Region.Sum(y=>y.Mikrokontroller.Count()),
+                };
             }).ToList();
+        }
+        [HttpGet]
+        public async Task<LandSearchResponse> Search([FromQuery] SearchRequest query)
+        {
+            query.Search = query.Search == null ? "" : query.Search.ToLower();
+            var q = this.context.Lands.Where(x => x.Name.ToLower().Contains(query.Search) || x.Code.ToLower().Contains(query.Search));
+            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).ToListAsync()).Select(x => {
+                return new LandItemDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Code = x.Code,
+                    Address = x.Address,
+                    Photo = x.Photo,
+                    CordinateLand = x.CordinateLand,
+                    NRegion=x.Region.Count(),
+                    NMicrocontroller = x.Region.Sum(y=>y.Mikrokontroller.Count()),
+                };
+            }).ToList();
+            return new LandSearchResponse
+            {
+                Data = res,
+                NTotal = q.Count()
+            };
         }
         [HttpPost]
         public async Task<IActionResult> AddLand([FromForm] CreateLandDto form)
         {
-        var model = new Land
+            var model = new Land
             {
                 Name = form.Name,
                 Address = form.Address,
@@ -79,9 +109,9 @@ namespace backend.Controllers
             }
         }
         [HttpPut("{LandId}")]
-        public async Task<IActionResult> UpdateLand(int LandId ,[FromForm] UpdateLandDto form)
+        public async Task<IActionResult> UpdateLand(int LandId, [FromForm] UpdateLandDto form)
         {
-            var result =  await context.Lands.FindAsync(LandId);
+            var result = await context.Lands.FindAsync(LandId);
             result.Name = form.Name;
             result.Code = form.Code;
             result.Address = form.Address;
@@ -118,37 +148,41 @@ namespace backend.Controllers
             await context.SaveChangesAsync();
         }
         [HttpDelete("{LandId}")]
-        public async Task DeletePlant(int LandId)
+        public async Task DeleteLand(int LandId)
         {
             var result = await this.context.Lands.FindAsync(LandId);
             this.context.Remove(result);
             await this.context.SaveChangesAsync();
         }
     }
+    public class LandSearchResponse: SearchResponse<LandItemDto>{
 
+    }
     public class LandItemDto
     {
-        public int Id {get;set;}
-        public string Name {get;set;}
-        public string Code {get;set;}
-        public string Address {get;set;}
-        public byte [] Photo { get; set; }
-        public string CordinateLand {get;set;}
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Code { get; set; }
+        public int NRegion { get; set; }
+        public int NMicrocontroller { get; set; }
+        public string Address { get; set; }
+        public byte[] Photo { get; set; }
+        public string CordinateLand { get; set; }
     }
     public class CreateLandDto
     {
-        public string Name {get;set;}
-        public string Code {get;set;}
-        public string Address {get;set;}
+        public string Name { get; set; }
+        public string Code { get; set; }
+        public string Address { get; set; }
         public IFormFile Photo { get; set; }
-        public string CordinateLand {get;set;}
+        public string CordinateLand { get; set; }
     }
     public class UpdateLandDto
     {
-        public string Name {get;set;}
-        public string Code {get;set;}
-        public string Address {get;set;}
+        public string Name { get; set; }
+        public string Code { get; set; }
+        public string Address { get; set; }
         public IFormFile Photo { get; set; }
-        public string CordinateLand {get;set;}
+        public string CordinateLand { get; set; }
     }
 }

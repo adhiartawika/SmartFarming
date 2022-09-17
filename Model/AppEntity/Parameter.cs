@@ -15,6 +15,7 @@ namespace backend.Model.AppEntity
         public string Description { get; set; }
         public double MinValue {get;set;}
         public double MaxValue {get;set;}
+        public string Color {get;set;}
         public int PlantId{get;set;}
         public virtual Plant Plant{get;set;}
     }

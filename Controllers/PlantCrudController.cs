@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Model.AppEntity;
 using backend.Persistences;
+using backend.Commons;
 
 namespace backend.Controllers
 {
@@ -18,23 +19,60 @@ namespace backend.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<PlantItemDto>> ShowPlants()
+        public async Task<IEnumerable<ReadPlantDto>> ShowPlants()
         {
-            return (await _context.Plants.Include(x=>x.Parameters).ToListAsync()).Select(x => new PlantItemDto
-            {
-                Description = x.Description,
-                Id = x.Id,
-                LatinName = x.LatinName,
-                Name = x.Name,
-                Parameters=x.Parameters.Select(y=> new PlantParameterItemDto{
-                    GroupName = y.GroupName,
-                    Description = y.Description,
-                    MinValue = y.MinValue,
-                    MaxValue = y.MaxValue
-                }).ToList()
+            return (await _context.Plants.Include(x=>x.Parameters).ToListAsync()).Select(x => {
+                List<ParameterReadPlantDto> Parameters = x.Parameters.GroupBy(y=>y.GroupName).Select(z=> new ParameterReadPlantDto{
+                    GroupName=z.Key,
+                    Descriptions=z.Select(c=> new DescriptionReadParameterPlantDto{
+                        Color=c.Color,
+                        Description=c.Description,
+                        MaxValue=c.MaxValue,
+                        MinValue=c.MinValue,
+                        Id=c.Id
+                    }).ToList()
+                }).ToList();
+                return new ReadPlantDto
+                {
+                    Description = x.Description,
+                    Id = x.Id,
+                    LatinName = x.LatinName,
+                    Name = x.Name,
+                    Parameters=Parameters
+                };
             });
         }
-
+        [HttpGet]
+        public async Task<PlantSearchResponse> Search([FromQuery] SearchRequest query)
+        {
+            query.Search = query.Search == null ? "" : query.Search.ToLower();
+            var q = this._context.Plants.Where(x => x.Name.ToLower().Contains(query.Search) || x.LatinName.ToLower().Contains(query.Search));
+            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).ToListAsync()).Select(x => {
+                List<ParameterReadPlantDto> Parameters = x.Parameters.GroupBy(y=>y.GroupName).Select(z=> new ParameterReadPlantDto{
+                    GroupName=z.Key,
+                    Descriptions=z.Select(c=> new DescriptionReadParameterPlantDto{
+                        Color=c.Color,
+                        Description=c.Description,
+                        MaxValue=c.MaxValue,
+                        MinValue=c.MinValue,
+                        Id=c.Id
+                    }).ToList()
+                }).ToList();
+                return new ReadPlantDto
+                {
+                    Description = x.Description,
+                    Id = x.Id,
+                    LatinName = x.LatinName,
+                    Name = x.Name,
+                    Parameters=Parameters
+                };
+            }).ToList();
+            return new PlantSearchResponse
+            {
+                Data = res,
+                NTotal = q.Count()
+            };
+        }
         // [HttpGet]
         // public async Task<IActionResult> GetPlant(int id){
         //     return (await _context.Plants.FirstOrDefault(a => a.Id == id)).Select(x => new PlantItemDto
@@ -88,28 +126,37 @@ namespace backend.Controllers
             await _context.SaveChangesAsync();
         }
     }
-    public class PlantParameterItemDto{
+    public class PlantSearchResponse: SearchResponse<ReadPlantDto>{
+
+    }
+    public class DescriptionReadParameterPlantDto{
         public int Id {get;set;}
-        public string GroupName {get;set;}
 
         public string Description {get;set;}
 
         public double MinValue {get;set;}
         public double MaxValue {get;set;}
+        public string Color {get;set;}
     }
-    public class PlantItemDto
+    public class ParameterReadPlantDto{
+        public string GroupName {get;set;}
+
+        public List<DescriptionReadParameterPlantDto> Descriptions {get;set;}
+
+    }
+    public class ReadPlantDto
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public string LatinName { get; set; }
         public string Description { get; set; }
-
-        public List<PlantParameterItemDto> Parameters {get;set;}
+        public List<ParameterReadPlantDto> Parameters {get;set;}
     }
     public class DescriptionPlantParameterDto{
         public string Description { get; set; }
         public double MinValue { get; set; }
         public double MaxValue { get; set; }
+        public double Color { get; set; }
     }
     public class PlantParameterDto
     {
