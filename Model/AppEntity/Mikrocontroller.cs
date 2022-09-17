@@ -14,6 +14,8 @@ namespace backend.Model.AppEntity
             this.Sensor = new HashSet<Sensor>();
         }
         public int Id { get; set; }
+        public string Name {get; set;}
+        public string Description {get; set;}
         public int RegionId { get; set; }
         public virtual Region Region { get; set; }
         public int IotId { get; set; }
