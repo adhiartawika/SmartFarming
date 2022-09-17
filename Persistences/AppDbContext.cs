@@ -24,6 +24,8 @@ namespace backend.Persistences
 
         public DbSet<Data> Datas { get; set; }
         public DbSet<IotStatus> IotStatus { get; set; }
+        
+        public DbSet<Actuator> Actuators { get; set; }
         public DbSet<Mikrokontroller> Mikrokontrollers { get; set; }
         public DbSet<Sensor> Sensors {get;set;}
         // public DbSet<DataResult> DataResults { get; set; }
@@ -67,6 +69,7 @@ namespace backend.Persistences
         public DbSet<IotStatus> IotStatus { get ; set ; }
         public DbSet<Parameter> Parameters { get ; set ; }
         public DbSet<Data> Datas { get ; set ; }
+        public DbSet<Actuator> Actuators { get; set; }
         public DbSet<Mikrokontroller> Mikrokontrollers{ get; set; }
         public DbSet<Sensor> Sensors {get;set;}
         public DbSet<UserDevice> UserDevices { get; set; }

@@ -10,13 +10,18 @@ namespace backend.Model.AppEntity
         public string Name {get; set;}
         public string Description {get; set;}
         public TypeSensor Type {get; set;}
+
+        public int MikrocontrollerId {get; set;}
+        public virtual Mikrokontroller MikroController {get; set;}
     }
 
     public enum TypeSensor{
         ph = 0,
-        moisture = 1,
-        humidity = 2,
-        servo = 3,
-        camera = 4,
+        Soilmoisture = 1,
+
+        Airmoisture = 2,
+        Soiltemperature = 3,
+
+        AirTemperature = 4,
     }
 }
