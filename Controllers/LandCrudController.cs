@@ -37,6 +37,20 @@ namespace backend.Controllers
             }).ToList();
         }
         [HttpGet]
+        public async Task<IEnumerable<LandItemMinimalDto>> ShowLandMinimal()
+        {
+            return (await context.Lands.ToListAsync())
+            .Select(x =>
+            {
+                return new LandItemMinimalDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Code = x.Code,
+                };
+            }).ToList();
+        }
+        [HttpGet]
         public async Task<LandSearchResponse> Search([FromQuery] SearchRequest query)
         {
             query.Search = query.Search == null ? "" : query.Search.ToLower();
@@ -61,7 +75,7 @@ namespace backend.Controllers
             };
         }
         [HttpPost]
-        public async Task<IActionResult> AddLand([FromForm] CreateLandDto form)
+        public async Task<int> AddLand([FromForm] CreateLandDto form)
         {
             var model = new Land
             {
@@ -74,7 +88,7 @@ namespace backend.Controllers
             {
                 if (form.Photo.Length > 500000)
                 {
-                    return new BadRequestObjectResult(new AppResponse { Message = "Foto terlalu besar" });
+                    throw new BadImageFormatException();
                 }
                 if (form.Photo.Length > 0)
                 {
@@ -101,11 +115,11 @@ namespace backend.Controllers
 
                 var temp = this.context.Lands.Add(model);
                 var res = await this.context.SaveChangesAsync(new CancellationToken());
-                return new OkObjectResult(new CreateResponse<int> { Id = temp.Entity.Id, Message = "Berhasil menambah greenhouse baru" });
+                return temp.Entity.Id;
             }
             catch (Exception ex)
             {
-                return new BadRequestObjectResult(new AppResponse { Message = "Gagal menambah greenhouse baru" });
+                throw ex;
             }
         }
         [HttpPut("{LandId}")]
@@ -158,6 +172,12 @@ namespace backend.Controllers
     public class LandSearchResponse: SearchResponse<LandItemDto>{
 
     }
+    public class LandItemMinimalDto{
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Code { get; set; }
+        
+    }
     public class LandItemDto
     {
         public int Id { get; set; }
@@ -166,7 +186,7 @@ namespace backend.Controllers
         public int NRegion { get; set; }
         public int NMicrocontroller { get; set; }
         public string Address { get; set; }
-        public byte[] Photo { get; set; }
+        public byte[]? Photo { get; set; }
         public string CordinateLand { get; set; }
     }
     public class CreateLandDto
@@ -174,7 +194,7 @@ namespace backend.Controllers
         public string Name { get; set; }
         public string Code { get; set; }
         public string Address { get; set; }
-        public IFormFile Photo { get; set; }
+        public IFormFile? Photo { get; set; }
         public string CordinateLand { get; set; }
     }
     public class UpdateLandDto
