@@ -92,7 +92,7 @@ namespace backend.Controllers
         public async Task DeleteRegion(int RegionId)
         {
             var result = await this.context.Regions.FindAsync(RegionId);
-            this.context.Remove(result);
+            this.context.Regions.Remove(result!);
             await this.context.SaveChangesAsync();
         }
     }

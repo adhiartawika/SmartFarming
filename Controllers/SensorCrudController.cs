@@ -17,6 +17,19 @@ namespace backend.Controllers
         }
 
         [HttpGet]
+        public IEnumerable<SensorType> GetSensorTypes(){
+            List<SensorType> types = new List<SensorType>();
+            foreach(int i in Enum.GetValues(typeof(TypeSensor))) {  
+                SensorType  temp = new SensorType{
+                    Id=i,
+                    Name=Enum.GetName(typeof(TypeSensor), i)!.ToString()
+                };
+                types.Append(temp);
+            }  
+            return types;
+        }
+
+        [HttpGet]
         public async Task<IEnumerable<SensorItemDto>> ShowSensor(){
             return (await this.context.Sensors.Include(x => x.MikroController).ToListAsync()).Select(y => new SensorItemDto{
                 Id = y.Id,
@@ -26,7 +39,34 @@ namespace backend.Controllers
                 MicroName = y.MikroController.Name
             });
         }
-
+        [HttpGet("{LandId:int?}")]
+        public async Task<SensorSearchResponse> Search([FromQuery] SearchRequest query, int LandId = -1)
+        {
+            query.Search = query.Search == null ? "" : query.Search.ToLower();
+            var q = this.context.Sensors.Include(x => x.MikroController).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
+            .Where(x=>LandId==-1? true: x.MikroController.Region.LandId==LandId)
+            .Where(x => x.Name.ToLower().Contains(query.Search));
+            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).ToListAsync()).Select(x =>
+            {
+                return new SensorItemDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description=x.Description,
+                    LandId=x.MikroController.Region.LandId,
+                    LandName=x.MikroController.Region.Land.Name,
+                    MicroId=x.MikrocontrollerId,
+                    MicroName=x.MikroController.Name,
+                    RegionId=x.MikroController.RegionId,
+                    RegionName=x.MikroController.Region.Name
+                };
+            }).ToList();
+            return new SensorSearchResponse
+            {
+                Data = res,
+                NTotal = q.Count()
+            };
+        }
         [HttpPost]
         public async Task<int> AddSensor([FromBody] AddSensorDto model){
             var obj = await this.context.AddAsync(new Sensor{
@@ -52,18 +92,25 @@ namespace backend.Controllers
         [HttpDelete("{SensorId}")]
         public async Task DeleteSensor(int SensorId){
             var result = await this.context.Sensors.FindAsync(SensorId);
-            this.context.Sensors.Remove(result);
+            this.context.Sensors.Remove(result!);
             await this.context.SaveChangesAsync();
         }
+    }
+    public class SensorType{
+         public int Id {get;set;}
+        public string Name {get; set;}
     }
     public class SensorItemDto{
         public int Id {get;set;}
         public string Name {get; set;}
-
         public string Description {get;set;}
-        public TypeSensor type {get;set;} 
+        public int Type {get;set;} 
         public int MicroId {get;set;}
         public string MicroName {get; set;}
+        public int RegionId {get;set;}
+        public string RegionName {get; set;}
+        public int LandId {get;set;}
+        public string LandName {get; set;}
     }
 
     public class AddSensorDto{
@@ -79,5 +126,9 @@ namespace backend.Controllers
         public string Description{get;set;}
         public TypeSensor type {get;set;} 
         public int MicroId {get;set;}
+    }
+    public class SensorSearchResponse : SearchResponse<SensorItemDto>
+    {
+
     }
 }
