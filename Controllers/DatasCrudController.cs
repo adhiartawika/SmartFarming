@@ -28,10 +28,19 @@ namespace backend.Controllers
             });
         }
         [HttpPost]
-        public async Task<int> AddData([FromBody] AddDataDto model)
+        public async Task AddData([FromBody] AddDataDto model)
         {
-            var obj_baru = await this.context.Datas.AddAsync(new Data { ParameterId = model.ParameterId, ValueParameter = model.ValueParameter});
-            return await this.context.SaveChangesAsync();
+            for (int i = 0; i < model.sensor.Count(); i++)
+            {
+                this.context.Add(new Data{
+                    CreatedAt=DateTime.Now,
+                    SensorId=model.sensor.ElementAt(i).id,
+                    ValueParameter=model.sensor.ElementAt(i).value,
+                    ParameterId=model.sensor.ElementAt(i).id
+                });
+                await this.context.SaveChangesAsync();
+            }
+            
         }
 
     [HttpPut("{dataId}")]
@@ -60,9 +69,13 @@ namespace backend.Controllers
         public decimal ValueParameter {get; set;}
     }
     public class  AddDataDto{
-        public int MicroId {get;set;}
-        public int ParameterId {get;set;}
-        public decimal ValueParameter {get; set;}
+        public int Id {get;set;}
+        public List<AddDataSensor> sensor {get;set;}
+    }
+    public class AddDataSensor{
+        public int id{get;set;}
+        public decimal value {get;set;}
+        public string name {get;set;}
     }
     public class  UpdateDataDto{
         public int ParameterId {get;set;}
