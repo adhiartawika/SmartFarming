@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using backend.Commons;
 
 namespace backend.Model.AppEntity
 {
-    public class Plant
+    public class Plant:Auditable
     {
         public Plant()
         {

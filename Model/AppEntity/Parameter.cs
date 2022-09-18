@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using backend.Commons;
 
 namespace backend.Model.AppEntity
 {
-    public class Parameter
+    public class Parameter:Auditable
     {
         public Parameter()
         {

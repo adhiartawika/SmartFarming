@@ -16,7 +16,7 @@ namespace backend.Model.AppEntity
         public int Id{get;set;}
         public string Name{get;set;}
         public string RegionDescription {get;set;}
-        public string CordinateRegion {get;set;}
+        public string? CordinateRegion {get;set;}
         public int  LandId { get; set; }
         public virtual Land Land { get; set; }  
         public virtual ICollection<RegionPlant> RegionPlant { get; set; }

@@ -21,8 +21,8 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<IEnumerable<ReadPlantDto>> ShowPlants()
         {
-            return (await _context.Plants.Include(x=>x.Parameters).ToListAsync()).Select(x => {
-                List<ParameterReadPlantDto> Parameters = x.Parameters.GroupBy(y=>y.GroupName).Select(z=> new ParameterReadPlantDto{
+            return (await _context.Plants.Where(x=>x.DeletedAt==null).Include(x=>x.Parameters).ToListAsync()).Select(x => {
+                List<ParameterReadPlantDto> Parameters = x.Parameters.Where(x=>x.DeletedAt==null).GroupBy(y=>y.GroupName).Select(z=> new ParameterReadPlantDto{
                     GroupName=z.Key,
                     Descriptions=z.Select(c=> new DescriptionReadParameterPlantDto{
                         Color=c.Color,
@@ -46,9 +46,9 @@ namespace backend.Controllers
         public async Task<PlantSearchResponse> Search([FromQuery] SearchRequest query)
         {
             query.Search = query.Search == null ? "" : query.Search.ToLower();
-            var q = this._context.Plants.Where(x => x.Name.ToLower().Contains(query.Search) || x.LatinName.ToLower().Contains(query.Search));
-            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).ToListAsync()).Select(x => {
-                List<ParameterReadPlantDto> Parameters = x.Parameters.GroupBy(y=>y.GroupName).Select(z=> new ParameterReadPlantDto{
+            var q = this._context.Plants.Where(x=>x.DeletedAt==null).Include(x=>x.Parameters).Where(x => x.Name.ToLower().Contains(query.Search) || x.LatinName.ToLower().Contains(query.Search));
+            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync()).Select(x => {
+                List<ParameterReadPlantDto> Parameters = x.Parameters.Where(x=>x.DeletedAt==null).OrderBy(x=>x.MinValue).GroupBy(y=>y.GroupName).Select(z=> new ParameterReadPlantDto{
                     GroupName=z.Key,
                     Descriptions=z.Select(c=> new DescriptionReadParameterPlantDto{
                         Color=c.Color,
@@ -90,29 +90,32 @@ namespace backend.Controllers
         //     });
         // }
         [HttpPost]
-        public async Task AddPlant([FromBody] CreatePlantDto model)
+        public async Task<int> AddPlant([FromBody] CreatePlantDto model)
         {
             List<Parameter> parameters = new List<Parameter>();
-            for (int i = 0; i < model.PlantParameter.Count(); i++)
+            
+            for (int i = 0; i < model.Parameters.Count(); i++)
             {
-                for (int j = 0; j < model.PlantParameter.ElementAt(i).Descriptions.Count(); j++)
+                for (int j = 0; j < model.Parameters.ElementAt(i).Descriptions.Count(); j++)
                 {
                     parameters.Add(new Parameter
                     {
-                        GroupName = model.PlantParameter.ElementAt(i).GroupName,
-                        Description = model.PlantParameter.ElementAt(i).Descriptions.ElementAt(j).Description,
-                        MinValue = model.PlantParameter.ElementAt(i).Descriptions.ElementAt(j).MinValue,
-                        MaxValue = model.PlantParameter.ElementAt(i).Descriptions.ElementAt(j).MaxValue,
+                        GroupName = model.Parameters.ElementAt(i).GroupName,
+                        Description = model.Parameters.ElementAt(i).Descriptions.ElementAt(j).Description,
+                        MinValue = model.Parameters.ElementAt(i).Descriptions.ElementAt(j).MinValue,
+                        MaxValue = model.Parameters.ElementAt(i).Descriptions.ElementAt(j).MaxValue,
+                        Color = model.Parameters.ElementAt(i).Descriptions.ElementAt(j).Color,
                     });
                 }
             }
             var obj_baru = await _context.Plants.AddAsync(new Plant { Name = model.Name, LatinName = model.LatinName, Description = model.Description, Parameters = parameters });
             await _context.SaveChangesAsync();
+            return obj_baru.Entity.Id;
         }
         [HttpPut("{PlantId}")]
         public async Task UpdatePlant(int PlantId ,[FromBody] UpdatePlantDto model)
         {
-            var result =  await _context.Plants.FindAsync(PlantId);
+            var result =  await _context.Plants.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==PlantId);
             result.Name = model.Name;
             result.LatinName = model.LatinName;
             result.Description = model.Description;
@@ -121,8 +124,8 @@ namespace backend.Controllers
         [HttpDelete("{PlantId}")]
         public async Task DeletePlant(int PlantId)
         {
-            var result = await _context.Plants.FindAsync(PlantId);
-            _context.Remove(result);
+            var result = await _context.Plants.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==PlantId);
+            _context.Plants.Remove(result!);
             await _context.SaveChangesAsync();
         }
     }
@@ -156,7 +159,7 @@ namespace backend.Controllers
         public string Description { get; set; }
         public double MinValue { get; set; }
         public double MaxValue { get; set; }
-        public double Color { get; set; }
+        public string Color { get; set; }
     }
     public class PlantParameterDto
     {
@@ -174,7 +177,7 @@ namespace backend.Controllers
         public string LatinName { get; set; }
         public string Description { get; set; }
 
-        public List<PlantParameterDto> PlantParameter { get; set; }
+        public List<PlantParameterDto> Parameters { get; set; }
     }
     public class UpdatePlantDto
     {
