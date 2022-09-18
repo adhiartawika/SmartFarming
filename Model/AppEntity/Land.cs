@@ -18,7 +18,7 @@ namespace backend.Model.AppEntity
         public string Name { get; set; }
         public string Code { get; set; }
         public string Address { get; set; }
-        public Byte[] Photo { get; set; }
+        public Byte[]? Photo { get; set; }
         public string CordinateLand {get; set;}
         // public int RegionId {get;set;}
         // public virtual Region Region {get;set;}
