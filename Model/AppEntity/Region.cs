@@ -10,7 +10,7 @@ namespace backend.Model.AppEntity
     {
         public Region()
         {
-            this.RegionPlant = new HashSet<RegionPlant>();
+            // this.RegionPlant = new HashSet<RegionPlant>();
             this.Mikrokontroller = new HashSet<Mikrokontroller>();
         }
         public int Id{get;set;}
@@ -19,7 +19,9 @@ namespace backend.Model.AppEntity
         public string? CordinateRegion {get;set;}
         public int  LandId { get; set; }
         public virtual Land Land { get; set; }  
-        public virtual ICollection<RegionPlant> RegionPlant { get; set; }
+        public int PlantId{get;set;}
+        public virtual Plant Plant {get;set;}
+        // public virtual ICollection<RegionPlant> RegionPlant { get; set; }
         public virtual ICollection<Mikrokontroller> Mikrokontroller { get; set; }
     }
 }

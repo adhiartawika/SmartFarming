@@ -11,8 +11,8 @@ using backend.Persistences;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20220914060805_crudini")]
-    partial class crudini
+    [Migration("20220918194739_tambahanku7")]
+    partial class tambahanku7
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -85,6 +85,51 @@ namespace backend.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.Actuator", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("LastModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MikrocontrollerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MikrocontrollerId");
+
+                    b.ToTable("Actuators");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.Data", b =>
                 {
                     b.Property<int>("Id")
@@ -97,12 +142,17 @@ namespace backend.Migrations
                     b.Property<int>("ParameterId")
                         .HasColumnType("int");
 
+                    b.Property<int>("SensorId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("ValueParameter")
                         .HasColumnType("decimal(7,3)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ParameterId");
+
+                    b.HasIndex("SensorId");
 
                     b.ToTable("Datas");
                 });
@@ -147,7 +197,6 @@ namespace backend.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("CordinateLand")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("CreatedAt")
@@ -173,7 +222,6 @@ namespace backend.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<byte[]>("Photo")
-                        .IsRequired()
                         .HasColumnType("longblob");
 
                     b.Property<int>("UserId")
@@ -202,6 +250,10 @@ namespace backend.Migrations
                     b.Property<int?>("DeletedBy")
                         .HasColumnType("int");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<int>("IotId")
                         .HasColumnType("int");
 
@@ -210,6 +262,10 @@ namespace backend.Migrations
 
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("RegionId")
                         .HasColumnType("int");
@@ -227,6 +283,22 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -234,6 +306,12 @@ namespace backend.Migrations
                     b.Property<string>("GroupName")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("LastModifiedBy")
+                        .HasColumnType("int");
 
                     b.Property<double>("MaxValue")
                         .HasColumnType("double");
@@ -257,9 +335,27 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("LastModifiedBy")
+                        .HasColumnType("int");
 
                     b.Property<string>("LatinName")
                         .IsRequired()
@@ -269,12 +365,7 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("RegionId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("RegionId");
 
                     b.ToTable("Plants");
                 });
@@ -286,7 +377,6 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CordinateRegion")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("CreatedAt")
@@ -314,6 +404,9 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("PlantId")
+                        .HasColumnType("int");
+
                     b.Property<string>("RegionDescription")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -321,6 +414,8 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("LandId");
+
+                    b.HasIndex("PlantId");
 
                     b.ToTable("Regions");
                 });
@@ -331,11 +426,29 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("MikrokontrollerId")
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("LastModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MikrocontrollerId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -347,7 +460,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MikrokontrollerId");
+                    b.HasIndex("MikrocontrollerId");
 
                     b.ToTable("Sensors");
                 });
@@ -435,6 +548,17 @@ namespace backend.Migrations
                     b.ToTable("IdentityIoTs");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.Actuator", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.Mikrokontroller", "MikroController")
+                        .WithMany()
+                        .HasForeignKey("MikrocontrollerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MikroController");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.Data", b =>
                 {
                     b.HasOne("backend.Model.AppEntity.Parameter", "Parameter")
@@ -443,7 +567,15 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Model.AppEntity.Sensor", "Sensor")
+                        .WithMany()
+                        .HasForeignKey("SensorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Parameter");
+
+                    b.Navigation("Sensor");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.IotStatus", b =>
@@ -479,13 +611,6 @@ namespace backend.Migrations
                     b.Navigation("Plant");
                 });
 
-            modelBuilder.Entity("backend.Model.AppEntity.Plant", b =>
-                {
-                    b.HasOne("backend.Model.AppEntity.Region", null)
-                        .WithMany("RegionPlant")
-                        .HasForeignKey("RegionId");
-                });
-
             modelBuilder.Entity("backend.Model.AppEntity.Region", b =>
                 {
                     b.HasOne("backend.Model.AppEntity.Land", "Land")
@@ -494,14 +619,26 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Model.AppEntity.Plant", "Plant")
+                        .WithMany("Regions")
+                        .HasForeignKey("PlantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Land");
+
+                    b.Navigation("Plant");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Sensor", b =>
                 {
-                    b.HasOne("backend.Model.AppEntity.Mikrokontroller", null)
+                    b.HasOne("backend.Model.AppEntity.Mikrokontroller", "MikroController")
                         .WithMany("Sensor")
-                        .HasForeignKey("MikrokontrollerId");
+                        .HasForeignKey("MikrocontrollerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MikroController");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.UserDevice", b =>
@@ -532,13 +669,13 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Model.AppEntity.Plant", b =>
                 {
                     b.Navigation("Parameters");
+
+                    b.Navigation("Regions");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Region", b =>
                 {
                     b.Navigation("Mikrokontroller");
-
-                    b.Navigation("RegionPlant");
                 });
 #pragma warning restore 612, 618
         }
