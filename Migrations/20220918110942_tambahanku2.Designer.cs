@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Persistences;
 
@@ -10,9 +11,10 @@ using backend.Persistences;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220918110942_tambahanku2")]
+    partial class tambahanku2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -89,27 +91,9 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("DeletedBy")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("LastModifiedBy")
-                        .HasColumnType("int");
 
                     b.Property<int>("MikrocontrollerId")
                         .HasColumnType("int");
@@ -280,18 +264,6 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("DeletedBy")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -299,12 +271,6 @@ namespace backend.Migrations
                     b.Property<string>("GroupName")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("LastModifiedBy")
-                        .HasColumnType("int");
 
                     b.Property<double>("MaxValue")
                         .HasColumnType("double");
@@ -328,27 +294,9 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("DeletedBy")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("LastModifiedBy")
-                        .HasColumnType("int");
 
                     b.Property<string>("LatinName")
                         .IsRequired()
@@ -453,27 +401,9 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("DeletedBy")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("LastModifiedBy")
-                        .HasColumnType("int");
 
                     b.Property<int>("MikrocontrollerId")
                         .HasColumnType("int");

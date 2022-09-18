@@ -11,7 +11,10 @@ var settings = builder.Configuration.GetConnectionString("MySqlConnectionApp");
 var mailKitOptions = builder.Configuration.GetSection("EmailSettings").Get<MailKitOptions>();
 // Add services to the container.
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddJsonOptions(jsonOptions =>
+                {
+                    jsonOptions.JsonSerializerOptions.PropertyNamingPolicy = null;
+                });
 // builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 //services.AddSingleton<ICurrentUserService, CurrentUserService>();
 //services.AddSingleton<ICurrentUserService, CurrentUsesrService>();

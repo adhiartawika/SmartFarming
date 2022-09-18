@@ -20,7 +20,7 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<IEnumerable<LandItemDto>> ShowLand()
         {
-            return (await context.Lands.Include(x => x.Region).Include(x => x.Region).ThenInclude(x => x.Mikrokontroller).ToListAsync())
+            return (await context.Lands.Where(x=>x.DeletedAt==null).Include(x => x.Region).Include(x => x.Region).ThenInclude(x => x.Mikrokontroller).ToListAsync())
             .Select(x =>
             {
                 return new LandItemDto
@@ -39,7 +39,7 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<IEnumerable<LandItemMinimalDto>> ShowLandMinimal()
         {
-            return (await context.Lands.ToListAsync())
+            return (await context.Lands.Where(x=>x.DeletedAt==null).ToListAsync())
             .Select(x =>
             {
                 return new LandItemMinimalDto
@@ -54,8 +54,11 @@ namespace backend.Controllers
         public async Task<LandSearchResponse> Search([FromQuery] SearchRequest query)
         {
             query.Search = query.Search == null ? "" : query.Search.ToLower();
-            var q = this.context.Lands.Where(x => x.Name.ToLower().Contains(query.Search) || x.Code.ToLower().Contains(query.Search));
-            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).ToListAsync()).Select(x => {
+            var q = this.context.Lands.Where(x=>x.DeletedAt==null).Where(x => x.Name.ToLower().Contains(query.Search) || x.Code.ToLower().Contains(query.Search));
+            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync())
+            .Select(x => {
+                var nReg= x.Region == null ?0:x.Region.Count();
+                var nMic = x.Region != null && x.Region.Count()>0 &&x.Region.Sum(y=>y.Mikrokontroller != null && y.Mikrokontroller.Count()>0?1:0) > 0 ? x.Region.Sum(y=>y.Mikrokontroller.Count()):0;
                 return new LandItemDto
                 {
                     Id = x.Id,
@@ -64,8 +67,8 @@ namespace backend.Controllers
                     Address = x.Address,
                     Photo = x.Photo,
                     CordinateLand = x.CordinateLand,
-                    NRegion=x.Region.Count(),
-                    NMicrocontroller = x.Region.Sum(y=>y.Mikrokontroller.Count()),
+                    NRegion=nReg,
+                    NMicrocontroller = nMic,
                 };
             }).ToList();
             return new LandSearchResponse
@@ -123,9 +126,9 @@ namespace backend.Controllers
             }
         }
         [HttpPut("{LandId}")]
-        public async Task<IActionResult> UpdateLand(int LandId, [FromForm] UpdateLandDto form)
+        public async Task UpdateLand(int LandId, [FromForm] UpdateLandDto form)
         {
-            var result = await context.Lands.FindAsync(LandId);
+            var result = await context.Lands.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==LandId);
             result.Name = form.Name;
             result.Code = form.Code;
             result.Address = form.Address;
@@ -134,7 +137,9 @@ namespace backend.Controllers
             {
                 if (form.Photo.Length > 500000)
                 {
-                    return new BadRequestObjectResult(new AppResponse { Message = "Foto terlalu besar" });
+                    throw new BadImageFormatException();
+
+                    // return new BadRequestObjectResult(new AppResponse { Message = "Foto terlalu besar" });
                 }
                 if (form.Photo.Length > 0)
                 {
@@ -152,11 +157,13 @@ namespace backend.Controllers
             try
             {
                 var res = await this.context.SaveChangesAsync(new CancellationToken());
-                return new OkObjectResult(new CreateResponse<int> { Message = "Berhasil menambah greenhouse baru" });
+                
+                // return new OkObjectResult(new CreateResponse<int> { Message = "Berhasil menambah greenhouse baru" });
             }
             catch (Exception ex)
             {
-                return new BadRequestObjectResult(new AppResponse { Message = "Gagal menambah greenhouse baru" });
+                throw ex;
+                // return new BadRequestObjectResult(new AppResponse { Message = "Gagal menambah greenhouse baru" });
             }
 
             await context.SaveChangesAsync();
@@ -164,7 +171,7 @@ namespace backend.Controllers
         [HttpDelete("{LandId}")]
         public async Task DeleteLand(int LandId)
         {
-            var result = await this.context.Lands.FindAsync(LandId);
+            var result = await this.context.Lands.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==LandId);
             this.context.Remove(result);
             await this.context.SaveChangesAsync();
         }
@@ -187,7 +194,7 @@ namespace backend.Controllers
         public int NMicrocontroller { get; set; }
         public string Address { get; set; }
         public byte[]? Photo { get; set; }
-        public string CordinateLand { get; set; }
+        public string? CordinateLand { get; set; }
     }
     public class CreateLandDto
     {
@@ -195,7 +202,7 @@ namespace backend.Controllers
         public string Code { get; set; }
         public string Address { get; set; }
         public IFormFile? Photo { get; set; }
-        public string CordinateLand { get; set; }
+        public string? CordinateLand { get; set; }
     }
     public class UpdateLandDto
     {
@@ -203,6 +210,6 @@ namespace backend.Controllers
         public string Code { get; set; }
         public string Address { get; set; }
         public IFormFile Photo { get; set; }
-        public string CordinateLand { get; set; }
+        public string? CordinateLand { get; set; }
     }
 }

@@ -63,7 +63,7 @@ namespace backend.Controllers
                 Description=x.Description,
                 Id=x.Id,
                 IotId=x.IotId,
-                IotStatus=x.IotStatus.LastOrDefault()!=null?new List<IotStatus>(){x.IotStatus.LastOrDefault()!}:new List<IotStatus>(),
+                IotStatus= x.IotStatus != null &&  x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!=null?new List<IotStatus>(){x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!}:new List<IotStatus>(),
                 LastModifiedAt=x.LastModifiedAt,
                 LastModifiedBy=x.LastModifiedBy,
                 Name=x.Name,
@@ -71,7 +71,8 @@ namespace backend.Controllers
                 RegionId=x.RegionId
             })
             .Where(x => x.Name.ToLower().Contains(query.Search));
-            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).ToListAsync()).Select(x =>
+            
+            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync()).Select(x =>
             {
                 return new MicroItemDto
                 {
@@ -80,7 +81,7 @@ namespace backend.Controllers
                     Description=x.Description,
                     RegionId=x.RegionId,
                     RegionName=x.Region.Name,
-                    Status=x.IotStatus.LastOrDefault() != null ?x.IotStatus.LastOrDefault()!.IsActive:false
+                    Status=x.IotStatus != null && x.IotStatus.Count()==0 ?x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!.IsActive:false
                 };
             }).ToList();
             return new MicrocontrollerSearchResponse

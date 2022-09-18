@@ -24,14 +24,15 @@ namespace backend.Controllers
                     Id=i,
                     Name=Enum.GetName(typeof(TypeSensor), i)!.ToString()
                 };
-                types.Append(temp);
+                types.Add(temp);
+
             }  
             return types;
         }
 
         [HttpGet]
         public async Task<IEnumerable<SensorItemDto>> ShowSensor(){
-            return (await this.context.Sensors.Include(x => x.MikroController).ToListAsync()).Select(y => new SensorItemDto{
+            return (await this.context.Sensors.Where(x=>x.DeletedAt==null).Include(x => x.MikroController).ToListAsync()).Select(y => new SensorItemDto{
                 Id = y.Id,
                 Name = y.Name,
                 Description = y.Description,
@@ -43,10 +44,11 @@ namespace backend.Controllers
         public async Task<SensorSearchResponse> Search([FromQuery] SearchRequest query, int LandId = -1)
         {
             query.Search = query.Search == null ? "" : query.Search.ToLower();
-            var q = this.context.Sensors.Include(x => x.MikroController).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
+            var q = this.context.Sensors.Where(x=>x.DeletedAt==null)
+            .Include(x => x.MikroController).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
             .Where(x=>LandId==-1? true: x.MikroController.Region.LandId==LandId)
             .Where(x => x.Name.ToLower().Contains(query.Search));
-            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).ToListAsync()).Select(x =>
+            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync()).Select(x =>
             {
                 return new SensorItemDto
                 {
@@ -80,7 +82,7 @@ namespace backend.Controllers
 
         [HttpPut("{SensorId}")]
         public async Task UpdateSensor(int SensorId,[FromBody] UpdateSensorDto model){
-            var result = await this.context.Sensors.FindAsync(SensorId);
+            var result = await this.context.Sensors.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==SensorId);
             result.Name = model.Name;
             result.Description = model.Description;
             result.Type = model.type;
@@ -91,7 +93,7 @@ namespace backend.Controllers
 
         [HttpDelete("{SensorId}")]
         public async Task DeleteSensor(int SensorId){
-            var result = await this.context.Sensors.FindAsync(SensorId);
+            var result = await this.context.Sensors.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==SensorId);
             this.context.Sensors.Remove(result!);
             await this.context.SaveChangesAsync();
         }

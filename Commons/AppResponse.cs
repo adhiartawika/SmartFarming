@@ -15,7 +15,7 @@ namespace backend.Commons
     }
     public class SearchRequest
     {
-        public string Search { get; set; }
+        public string? Search { get; set; }
         public int Page { get; set; }
         public int N { get; set; }
     }
