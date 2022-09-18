@@ -16,21 +16,21 @@ namespace backend.Controllers
         {
             this.context = context;
         }
-        [HttpGet]
-        public async Task<IEnumerable<DataItemDto>> ShowData(){
-            return (await this.context.Datas.Include(x => x.Parameter).ToListAsync()).Select(y => new DataItemDto{
-                Id = y.Id,
-                ParameterId = y.Parameter.Id,
-                GroupName = y.Parameter.GroupName,
-                MinValue = y.Parameter.MinValue,
-                MaxValue = y.Parameter.MaxValue,
-                ValueParameter = y.ValueParameter
-            });
-        }
+        // [HttpGet]
+        // public async Task<IEnumerable<DataItemDto>> ShowData(){
+        //     return (await this.context.Datas.ToListAsync()).Select(y => new DataItemDto{
+        //         Id = y.Id,
+        //         ParameterId = y.Parameter.Id,
+        //         GroupName = y.Parameter.GroupName,
+        //         MinValue = y.Parameter.MinValue,
+        //         MaxValue = y.Parameter.MaxValue,
+        //         ValueParameter = y.ValueParameter
+        //     });
+        // }
         [HttpPost]
         public async Task<int> AddData([FromBody] AddDataDto model)
         {
-            var obj_baru = await this.context.Datas.AddAsync(new Data { ParameterId = model.ParameterId, ValueParameter = model.ValueParameter});
+            var obj_baru = await this.context.Datas.AddAsync(new Data { ParameterName = model.ParameterId, ValueParameter = model.ValueParameter});
             return await this.context.SaveChangesAsync();
         }
 

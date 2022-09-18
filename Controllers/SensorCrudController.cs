@@ -54,6 +54,7 @@ namespace backend.Controllers
                 {
                     Id = x.Id,
                     Name = x.Name,
+                    TypeName= Enum.GetName(typeof(TypeSensor), x.Type)!.ToString(),
                     Description=x.Description,
                     LandId=x.MikroController.Region.LandId,
                     LandName=x.MikroController.Region.Land.Name,
@@ -85,7 +86,7 @@ namespace backend.Controllers
             var result = await this.context.Sensors.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==SensorId);
             result.Name = model.Name;
             result.Description = model.Description;
-            result.Type = model.type;
+            result.Type = model.Type;
             result.MikrocontrollerId = model.MicroId;
 
             await this.context.SaveChangesAsync();
@@ -93,7 +94,7 @@ namespace backend.Controllers
 
         [HttpDelete("{SensorId}")]
         public async Task DeleteSensor(int SensorId){
-            var result = await this.context.Sensors.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==SensorId);
+            var result = await this.context.Sensors.FirstOrDefaultAsync(x=>x.Id==SensorId);
             this.context.Sensors.Remove(result!);
             await this.context.SaveChangesAsync();
         }
@@ -107,6 +108,7 @@ namespace backend.Controllers
         public string Name {get; set;}
         public string Description {get;set;}
         public int Type {get;set;} 
+        public string TypeName {get;set;} 
         public int MicroId {get;set;}
         public string MicroName {get; set;}
         public int RegionId {get;set;}
@@ -126,7 +128,7 @@ namespace backend.Controllers
     public class UpdateSensorDto{
         public string Name {get;set;}
         public string Description{get;set;}
-        public TypeSensor type {get;set;} 
+        public TypeSensor Type {get;set;} 
         public int MicroId {get;set;}
     }
     public class SensorSearchResponse : SearchResponse<SensorItemDto>
