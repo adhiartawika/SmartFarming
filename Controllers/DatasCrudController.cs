@@ -60,6 +60,7 @@ namespace backend.Controllers
         public decimal ValueParameter {get; set;}
     }
     public class  AddDataDto{
+        public int MicroId {get;set;}
         public int ParameterId {get;set;}
         public decimal ValueParameter {get; set;}
     }
