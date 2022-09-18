@@ -53,6 +53,7 @@ namespace backend.Controllers
             query.Search = query.Search == null ? "" : query.Search.ToLower();
             var q = this.context.Mikrokontrollers
             .Include(x => x.Region).ThenInclude(x=>x.Land)
+            .Include(x => x.Region).ThenInclude(x=>x.RegionPlant).ThenInclude(x=>x.Plant)
             .Include(x=>x.IotStatus)
             .Where(x=>LandId==-1? true: x.Region.LandId==LandId)
             .Select(x=> new Mikrokontroller{
@@ -79,9 +80,11 @@ namespace backend.Controllers
                     Id = x.Id,
                     Name = x.Name,
                     Description=x.Description,
+                    LandId=x.Region.Land.Id,
+                    LandName=x.Region.Land.Name,
                     RegionId=x.RegionId,
-                    RegionName=x.Region.Name,
-                    Status=x.IotStatus != null && x.IotStatus.Count()==0 ?x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!.IsActive:false
+                    RegionName=x.Region.RegionPlant !=null && x.Region.RegionPlant.Count()>0? x.Region.RegionPlant.OrderBy(x=>x.CreatedAt).LastOrDefault()!.Plant.Name  :"-",//x.Region.Name,
+                    Status=x.IotStatus == null || x.IotStatus.Count()==0 ? false : x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!.IsActive
                 };
             }).ToList();
             return new MicrocontrollerSearchResponse
@@ -132,6 +135,8 @@ namespace backend.Controllers
         public int Id {get; set;}
         public string Name {get; set;}
         public string Description {get; set;}
+        public int LandId {get; set;}
+        public string LandName {get; set;}
         public int RegionId {get; set;}
         public string RegionName {get; set;}
         public bool Status {get;set;}

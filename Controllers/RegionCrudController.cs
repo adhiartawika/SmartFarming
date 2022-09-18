@@ -33,13 +33,13 @@ namespace backend.Controllers
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<RegionItemMinimalDto>> ShowRegionMinimal(int LandId)
         {
-            return (await context.Regions.Where(x=>x.DeletedAt==null).Where(x=>x.LandId==LandId).ToListAsync())
+            return (await context.Regions.Include(x=>x.RegionPlant).ThenInclude(x=>x.Plant).Where(x=>x.DeletedAt==null).Where(x=>x.LandId==LandId).ToListAsync())
             .Select(x =>
             {
                 return new RegionItemMinimalDto
                 {
                     Id = x.Id,
-                    Name = x.Name,
+                    Name = x.RegionPlant !=null && x.RegionPlant.Count()>0? x.RegionPlant.OrderBy(x=>x.CreatedAt).LastOrDefault()!.Plant.Name  :"-",
                     LandId = x.LandId,
                     RegionDescription = x.RegionDescription
                 };
@@ -49,13 +49,15 @@ namespace backend.Controllers
         public async Task<RegionSearchResponse> Search([FromQuery] SearchRequest query)
         {
             query.Search = query.Search == null ? "" : query.Search.ToLower();
-            var q = this.context.Regions.Where(x=>x.DeletedAt==null).Include(x => x.Mikrokontroller).Include(x => x.Land).Where(x => x.Name.ToLower().Contains(query.Search));
+            var q = this.context.Regions.Where(x=>x.DeletedAt==null)
+            .Include(x=>x.RegionPlant).ThenInclude(x=>x.Plant)
+            .Include(x => x.Mikrokontroller).Include(x => x.Land).Where(x => x.Name.ToLower().Contains(query.Search));
             var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync()).Select(x =>
             {
                 return new RegionsItemDto
                 {
                     Id = x.Id,
-                    Name = x.Name,
+                    Name = x.RegionPlant !=null && x.RegionPlant.Count()>0? x.RegionPlant.OrderBy(x=>x.CreatedAt).LastOrDefault()!.Plant.Name  :"-",
                     CordinateRegion = x.CordinateRegion,
                     NMicrocontroller = x.Mikrokontroller.Count(),
                     RegionDescription = x.RegionDescription,
