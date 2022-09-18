@@ -4,7 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using NETCore.MailKit.Extensions;
 using NETCore.MailKit.Infrastructure.Internal;
-
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Builder;
+using backend;
 var builder = WebApplication.CreateBuilder(args);
 
 var settings = builder.Configuration.GetConnectionString("MySqlConnectionApp");
@@ -29,6 +33,10 @@ builder.Services.AddTransient<INotificationService,NotificationService>();
 builder.Services.AddMailKit(config => config.UseMailKit(mailKitOptions));
 builder.Services.AddSingleton<IUtilityService, UtilityService>();
 builder.Services.AddSingleton<IMailHelperService, MailHelperService>();
+builder.Services.AddSignalR(  o =>{
+                o.EnableDetailedErrors = true;
+                o.MaximumReceiveMessageSize = 10240;
+            });
 builder.Services.AddSingleton<IMailTemplateHelperService, MailTemplateHelperService>();
 //services.AddScoped<IHttpClientFactory>();
 // builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -54,7 +62,10 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<StreamHub>("/Stream");
+});
 
 app.MapControllerRoute(
     name: "default",

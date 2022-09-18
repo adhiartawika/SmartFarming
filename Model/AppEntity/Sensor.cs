@@ -11,7 +11,6 @@ namespace backend.Model.AppEntity
         public string Name {get; set;}
         public string Description {get; set;}
         public TypeSensor Type {get; set;}
-
         public int MikrocontrollerId {get; set;}
         public virtual Mikrokontroller MikroController {get; set;}
     }
