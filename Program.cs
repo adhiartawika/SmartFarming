@@ -9,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Builder;
 using backend;
+using backend.Hubs;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 var settings = builder.Configuration.GetConnectionString("MySqlConnectionApp");
@@ -64,12 +67,12 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapHub<StreamHub>("/Stream");
+    endpoints.MapHub<DataParamSensorHub>("/DataParamSensorHub");
 });
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
+
 
 app.MapFallbackToFile("index.html");;
 

@@ -18,7 +18,7 @@ namespace backend.Model.AppEntity
         public string Description {get; set;}
         public int RegionId { get; set; }
         public virtual Region Region { get; set; }
-        public int IotId { get; set; }
+        public int? IotId { get; set; }
         public virtual ICollection<Sensor> Sensor{get; set;}
         public virtual ICollection<IotStatus> IotStatus { get; set; }
     }

@@ -30,47 +30,66 @@ namespace backend.Controllers
         }
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<ParamOverview>> ShowParamOverview(int LandId, [FromQuery]ParamOverv query){
-            var temp = this._context.Regions.Include(x=>x.Plant).Where(x=>x.LandId==LandId).Select(x=>x.PlantId).ToList();
-            var temp2= (await this._context.Parameters
+            var listplantid = this._context.Regions.Include(x=>x.Plant).Where(x=>x.LandId==LandId).Select(x=>x.PlantId).ToList();
+            var parametersnameofplant= (await this._context.Parameters
             .Include(x =>x.Plant).ThenInclude(x=>x.Regions)
             // .ThenInclude(x=>x.RegionPlants).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
             // .Where(x=>x.Plant.RegionPlants.Any(y=>y.Region.LandId ==LandId))
-            .Where(x=>temp.Contains(x.PlantId))
-            .ToListAsync()).Select(y =>y.GroupName)
+            .Where(x=>listplantid.Contains(x.PlantId))
+            .ToListAsync()).Select(y =>y.GroupName.Trim())
             .ToList();
-            var temp3 = this._context.Datas
+            var datas = this._context.Datas
                             .Include(x=>x.Sensor).ThenInclude(x=>x.MikroController)
-                            .Include(x=>x.Parameter).ThenInclude(x=>x.Plant)
-                            .Where(x=>temp2.Contains(x.Parameter.GroupName))
-                            .Where(x=>query.Ids.Contains(x.Sensor.MikrocontrollerId))
-                            .Where(x=>query.GNames.Contains(x.Parameter.GroupName))
+                            .Include(x=>x.Parameter).ThenInclude(x=>x.Plant).ThenInclude(x=>x.Parameters)
+                            .Where(x=>parametersnameofplant.Contains(x.Parameter.GroupName.Trim()))
+                            .Where(x=>query.Ids == null ? false : query.Ids.Contains(x.Sensor.MikrocontrollerId))
+                            .Where(x=>query.GNames==null? false: query.GNames.Contains(x.Parameter.GroupName.Trim()))
+                            .GroupBy(x=>x.ParameterId)
+                            .Select(g=>g.OrderBy(f=>f.CreatedAt).Last())
                             .ToList();
-            var temp4 = temp3.Select(x=> new ParamOverview{
+                            // .GroupBy(x=>x.ParameterId, (key,g)=>g.OrderBy(v=>v.CreatedAt).Last());
+                            // .Select(x=>new Data{
+                            //     CreatedAt=x.CreatedAt,
+                            //     Id=x.Id,
+                            //     Parameter=x.Parameter,
+                            //     ParameterId=x.ParameterId,
+                            //     Sensor=x.Sensor,
+                            //     SensorId=x.SensorId,
+                            //     ValueParameter=x.ValueParameter
+                            // })
+                            // .ToList();
+            var rescandidate = datas.Select(x=> new ParamOverview{
                                 GroupName=x.Parameter.GroupName,
                                PlantName=x.Parameter.Plant.Name,
                                PlantId=x.Parameter.PlantId,
                                MicroId=x.Sensor.MikrocontrollerId,
-                               Value=x.ValueParameter
-                            });
-            for (int i = 0; i < temp4.Count(); i++)
+                               Value=x.ValueParameter,
+                               Descriptions=new List<DescriptionReadParameterPlantDto>()
+                            }).ToList();
+            
+            for (int i = 0; i < rescandidate.Count(); i++)
             {
-                var t = temp3.Where(x=>x.Parameter.PlantId == temp4.ElementAt(i).PlantId && temp4.ElementAt(i).MicroId == x.Sensor.MikrocontrollerId).OrderBy(x=>x.Parameter.MinValue).ToList();
+                var t = datas.Where(x=>
+                            x.Parameter.PlantId == rescandidate.ElementAt(i).PlantId && 
+                            rescandidate.ElementAt(i).MicroId == x.Sensor.MikrocontrollerId
+                        ).OrderBy(x=>x.CreatedAt).Select(x=>x.Parameter.Plant.Parameters).LastOrDefault();
                 var k = new List<DescriptionReadParameterPlantDto>();
-                for (int j = 0; j < t.Count(); j++)
+                for (int j = 0; j < t?.Count(); j++)
                 {
                     var jj = t.ElementAt(j);
-                    k.Add(new DescriptionReadParameterPlantDto{
-                        Color=jj.Parameter.Color,
-                        Description=jj.Parameter.Description,
-                        Id=jj.Parameter.Id,
-                        MaxValue=jj.Parameter.MaxValue,
-                        MinValue=jj.Parameter.MinValue
-                    });
-
+                     var ttt = new DescriptionReadParameterPlantDto{
+                        Color=jj.Color,
+                        Description=jj.Description,
+                        Id=jj.Id,
+                        MaxValue=jj.MaxValue,
+                        MinValue=jj.MinValue
+                    };
+                    if( rescandidate.ElementAt(i).GroupName == t.ElementAt(j).GroupName){ //sensor.name bisa diganti type jika groupname juga dari type
+                        rescandidate.ElementAt(i).Descriptions.Add(ttt);
+                    }
                 }
-                temp4.ElementAt(i).Descriptions=k;
             }
-            return temp4;
+            return rescandidate.Where(x=>x.Descriptions.Count()>0);
         }
 
         [HttpPost]
@@ -194,7 +213,7 @@ namespace backend.Controllers
         public List<int> Ids {get;set;}
     }
      public class ParamOverv{
-        public List<int> Ids {get;set;}
-        public List<string> GNames {get;set;}
+        public List<int>? Ids {get;set;}
+        public List<string>? GNames {get;set;}
     }
 }

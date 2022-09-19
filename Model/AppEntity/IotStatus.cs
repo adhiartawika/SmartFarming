@@ -17,6 +17,6 @@ namespace backend.Model.AppEntity
         public int MikrokontrollerId { get; set; }
         public virtual Mikrokontroller Mikrokontroller{ get; set; }
         public bool IsActive { get; set; }
-        public int IdIoT { get; set; }
+        public int? IdIoT { get; set; }
     }
 }

@@ -80,6 +80,29 @@ namespace backend.Controllers
             });
             return await this.context.SaveChangesAsync();
         }
+        [HttpPost]
+        public async Task Disconnect([FromBody] SensorConnection model){
+             this.context.IotStatus.Add(
+                        new IotStatus { 
+                            MikrokontrollerId=model.Id,       
+                            IdIoT=null,
+                            IsActive=false,
+                            CreatedAt= DateTime.Now
+                        });
+            await this.context.SaveChangesAsync();
+             
+        }
+        [HttpPost]
+        public async Task Connect([FromBody] SensorConnection model){
+            this.context.IotStatus.Add(
+                        new IotStatus { 
+                            MikrokontrollerId=model.Id,       
+                            IdIoT=null,
+                            IsActive=true,
+                            CreatedAt= DateTime.Now
+                        });
+            await this.context.SaveChangesAsync();
+        }
 
         [HttpPut("{SensorId}")]
         public async Task UpdateSensor(int SensorId,[FromBody] UpdateSensorDto model){
@@ -117,6 +140,9 @@ namespace backend.Controllers
         public string LandName {get; set;}
     }
 
+    public class SensorConnection{
+        public int Id{get;set;}
+    }
     public class AddSensorDto{
         public string Name {get;set;}
         public string Description{get;set;}

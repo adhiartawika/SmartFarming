@@ -19,12 +19,19 @@ namespace backend.Controllers
 
         [HttpGet]
         public async Task<IEnumerable<MicroItemDto>> ShowMicro(){
-            return (await this.context.Mikrokontrollers.Include(x =>x.Region).ToListAsync()).Select(y => new MicroItemDto{
+            return (await this.context.Mikrokontrollers
+            .Include(x =>x.Region).ThenInclude(x=>x.Land)
+            .Include(x=>x.Region).ThenInclude(x=>x.Plant)
+            .ToListAsync()).Select(y => new MicroItemDto{
                 Id = y.Id,
                 Name = y.Name,
                 Description = y.Description,
                 RegionId = y.Region.Id,
-                RegionName = y.Region.Name
+                RegionName = y.Region.Name,
+                LandId=y.Region.LandId,
+                LandName=y.Region.Land.Name,
+                PlantId=y.Region.PlantId,
+                PlantName=y.Region.Plant.Name
             });
         }
         [HttpGet("{LandId}")]
@@ -34,9 +41,10 @@ namespace backend.Controllers
             // .Include(x => x.Region).ThenInclude(x=>x.RegionPlant).ThenInclude(x=>x.Plant)
             .Include(x => x.Region).ThenInclude(x=>x.Plant)
             .Include(x=>x.IotStatus)
-            .Include(x =>x.Region)
+            .Include(x=>x.Sensor)
             // .Where(x=>LandId==-1? true: x.Region.LandId==LandId)
-            .Where(x=>model.Ids.Contains(x.Id))
+            .Where(x=>model.Ids == null ? false:model.Ids.Contains(x.Id))
+            .OrderBy(x=>x.CreatedAt)
             .Select(x=> new Mikrokontroller{
                 CreatedAt=x.CreatedAt,
                 CreatedBy=x.CreatedBy,
@@ -50,9 +58,12 @@ namespace backend.Controllers
                 LastModifiedBy=x.LastModifiedBy,
                 Name=x.Name,
                 Region=x.Region,
-                RegionId=x.RegionId
+                Sensor=x.Sensor,
+                RegionId=x.RegionId,
             })
-            .ToListAsync()).Select(y => new MicroItemDto{
+            .ToListAsync())
+            .Where(x=>x.Sensor.Where(y=>y.DeletedAt==null).Count()>0)
+            .Select(y => new MicroItemDto{
                 Id = y.Id,
                 Name = y.Name,
                 Description = y.Description,
@@ -60,12 +71,18 @@ namespace backend.Controllers
                 RegionName = y.Region.Name,
                 LandId=y.Region.LandId,
                 LandName=y.Region.Land.Name,
+                PlantId=y.Region.Plant.Id,
+                PlantName=y.Region.Plant.Name,
                 Status = y.IotStatus == null || y.IotStatus.Count()==0 ? false : y.IotStatus.OrderBy(x=>y.CreatedAt).LastOrDefault()!.IsActive
             });
         }
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<MicroItemMinimalDto>> ShowMinimalMicro(int LandId){
-            return (await this.context.Mikrokontrollers.Include(x =>x.Region).Where(x=>x.Region.LandId == LandId).ToListAsync()).Select(y => new MicroItemMinimalDto{
+            return (await this.context.Mikrokontrollers
+            .Include(x =>x.Region)
+            .Where(x=>x.Region.LandId == LandId)
+            .Where(x=>x.Sensor.Count()>0)
+            .ToListAsync()).Select(y => new MicroItemMinimalDto{
                 Id = y.Id,
                 Name = y.Name,
                 Description = y.Description,
@@ -148,7 +165,7 @@ namespace backend.Controllers
     }
 
     public class MicrosIdenity{
-        public List<int> Ids {get;set;}
+        public List<int>? Ids {get;set;}
     }
     public class AddMicroDto{
         public string Name {get; set;}
@@ -179,6 +196,8 @@ namespace backend.Controllers
         public string LandName {get; set;}
         public int RegionId {get; set;}
         public string RegionName {get; set;}
+        public int PlantId {get; set;}
+        public string PlantName {get; set;}
         public bool Status {get;set;}
     }
     public class MicrocontrollerSearchResponse : SearchResponse<MicroItemDto>
