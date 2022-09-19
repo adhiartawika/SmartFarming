@@ -17,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 var settings = builder.Configuration.GetConnectionString("MySqlConnectionApp");
 var mailKitOptions = builder.Configuration.GetSection("EmailSettings").Get<MailKitOptions>();
 // Add services to the container.
+builder.Services.AddSignalR();
 
 builder.Services.AddControllersWithViews().AddJsonOptions(jsonOptions =>
                 {
@@ -36,10 +37,11 @@ builder.Services.AddTransient<INotificationService,NotificationService>();
 builder.Services.AddMailKit(config => config.UseMailKit(mailKitOptions));
 builder.Services.AddSingleton<IUtilityService, UtilityService>();
 builder.Services.AddSingleton<IMailHelperService, MailHelperService>();
-builder.Services.AddSignalR(  o =>{
-                o.EnableDetailedErrors = true;
-                o.MaximumReceiveMessageSize = 10240;
-            });
+// builder.Services.AddSignalRCore(  o =>{
+//                 o.EnableDetailedErrors = true;
+//                 o.MaximumReceiveMessageSize = 10240;
+//             });
+
 builder.Services.AddSingleton<IMailTemplateHelperService, MailTemplateHelperService>();
 //services.AddScoped<IHttpClientFactory>();
 // builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -67,7 +69,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapHub<DataParamSensorHub>("/DataParamSensorHub");
+    endpoints.MapHub<DataParamSensorHub>("/DataParamSensorHub").AllowAnonymous();
 });
 app.MapControllerRoute(
     name: "default",
