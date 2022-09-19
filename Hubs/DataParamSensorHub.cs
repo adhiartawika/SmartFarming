@@ -15,13 +15,13 @@ namespace backend.Hubs
     public class DataParamSensorHub : Hub
     {
         private readonly AppDbContext appContext;
-        private readonly ICurrentIoTService currentIoTService;
+        // private readonly ICurrentIoTService currentIoTService;
         private readonly IDateTime dateTime;
         private static Dictionary<string, string> connGroup = new Dictionary<string, string>();
-        public DataParamSensorHub(AppDbContext appContext, ICurrentIoTService currentIoTService, IDateTime dateTime)
+        public DataParamSensorHub(AppDbContext appContext,  IDateTime dateTime)
         {
             this.appContext = appContext;
-            this.currentIoTService = currentIoTService;
+            // this.currentIoTService = currentIoTService;
             this.dateTime = dateTime;
         }
         public async Task JoinRoom(string roomId)
