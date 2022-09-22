@@ -57,6 +57,7 @@ builder.Services.AddSingleton<IMailTemplateHelperService, MailTemplateHelperServ
 builder.Services.AddRazorPages();
 var app = builder.Build();
 
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -69,11 +70,15 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
+    //endpoints.MapControllers();
+    endpoints.MapControllerRoute(
+                   name: "default",
+                   pattern: "{controller}/{action=Index}/{id?}");
     endpoints.MapHub<DataParamSensorHub>("/DataParamSensorHub").AllowAnonymous();
 });
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller}/{action=Index}/{id?}");
+//app.MapControllerRoute(
+//    name: "default",
+//    pattern: "{controller}/{action=Index}/{id?}");
 
 
 app.MapFallbackToFile("index.html");;

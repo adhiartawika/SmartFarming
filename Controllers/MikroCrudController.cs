@@ -136,7 +136,7 @@ namespace backend.Controllers
                     LandId=x.Region.Land.Id,
                     LandName=x.Region.Land.Name,
                     RegionId=x.RegionId,
-                    RegionName=x.Region.Plant.Name,
+                    RegionName= x.Sensor.Count()>0?  x.Region.Plant.Name:"-",
                     // RegionName=x.Region.RegionPlant !=null && x.Region.RegionPlant.Count()>0? x.Region.RegionPlant.OrderBy(x=>x.CreatedAt).LastOrDefault()!.Plant.Name  :"-",//x.Region.Name,
                     Status=x.IotStatus == null || x.IotStatus.Count()==0 ? false : x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!.IsActive
                 };
