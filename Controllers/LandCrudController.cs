@@ -20,7 +20,7 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<IEnumerable<LandItemDto>> ShowLand()
         {
-            return (await context.Lands.Where(x=>x.DeletedAt==null).Include(x => x.Region).Include(x => x.Region).ThenInclude(x => x.Mikrokontroller).ToListAsync())
+            return (await context.Lands.Where(x=>x.DeletedAt==null).Include(x => x.Region).ThenInclude(x => x.MiniPcs).ThenInclude(x => x.Mikrokontrollers).ToListAsync())
             .Select(x =>
             {
                 return new LandItemDto
@@ -32,7 +32,7 @@ namespace backend.Controllers
                     Photo = x.Photo,
                     CordinateLand = x.CordinateLand,
                     NRegion=x.Region.Count(),
-                    NMicrocontroller = x.Region.Sum(y=>y.Mikrokontroller.Count()),
+                    NMicrocontroller = x.Region.Sum(y=>y.MiniPcs.Count()), //micro
                 };
             }).ToList();
         }
@@ -58,7 +58,7 @@ namespace backend.Controllers
             var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync())
             .Select(x => {
                 var nReg= x.Region == null ?0:x.Region.Count();
-                var nMic = x.Region != null && x.Region.Count()>0 &&x.Region.Sum(y=>y.Mikrokontroller != null && y.Mikrokontroller.Count()>0?1:0) > 0 ? x.Region.Sum(y=>y.Mikrokontroller.Count()):0;
+                var nMic = x.Region != null && x.Region.Count()>0 &&x.Region.Sum(y=>y.MiniPcs != null && y.MiniPcs.Count()>0?1:0) > 0 ? x.Region.Sum(y=>y.MiniPcs.Count()):0; //micro
                 return new LandItemDto
                 {
                     Id = x.Id,

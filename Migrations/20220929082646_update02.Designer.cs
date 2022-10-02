@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Persistences;
 
@@ -10,9 +11,10 @@ using backend.Persistences;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220929082646_update02")]
+    partial class update02
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -319,10 +321,6 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -351,10 +349,6 @@ namespace backend.Migrations
 
                     b.Property<int>("RegionId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Secret")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -744,7 +738,7 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Model.AppEntity.ActuatorStatus", b =>
                 {
                     b.HasOne("backend.Model.AppEntity.Actuator", "Actuator")
-                        .WithMany("Status")
+                        .WithMany()
                         .HasForeignKey("ActuatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -902,11 +896,6 @@ namespace backend.Migrations
                     b.HasOne("backend.Model.AppEntity.MiniPc", null)
                         .WithMany("IdIoTs")
                         .HasForeignKey("MiniPcId");
-                });
-
-            modelBuilder.Entity("backend.Model.AppEntity.Actuator", b =>
-                {
-                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Land", b =>

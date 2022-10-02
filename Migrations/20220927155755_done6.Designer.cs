@@ -11,8 +11,8 @@ using backend.Persistences;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20220918193119_tambahanku6")]
-    partial class tambahanku6
+    [Migration("20220927155755_done6")]
+    partial class done6
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -91,6 +91,9 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int>("ActuatorTypeId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -113,19 +116,26 @@ namespace backend.Migrations
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("int");
 
-                    b.Property<int>("MikrocontrollerId")
+                    b.Property<int?>("MikrocontrollerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MiniPcId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Type")
+                    b.Property<int>("TypeActuatorsId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MikrocontrollerId");
+
+                    b.HasIndex("MiniPcId");
+
+                    b.HasIndex("TypeActuatorsId");
 
                     b.ToTable("Actuators");
                 });
@@ -142,12 +152,17 @@ namespace backend.Migrations
                     b.Property<int>("ParameterId")
                         .HasColumnType("int");
 
+                    b.Property<int>("SensorId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("ValueParameter")
                         .HasColumnType("decimal(7,3)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ParameterId");
+
+                    b.HasIndex("SensorId");
 
                     b.ToTable("Datas");
                 });
@@ -161,18 +176,20 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("IdIoT")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int>("MikrokontrollerId")
+                    b.Property<int?>("MicroControllerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MiniPcId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MikrokontrollerId");
+                    b.HasIndex("MicroControllerId");
+
+                    b.HasIndex("MiniPcId");
 
                     b.ToTable("IotStatus");
                 });
@@ -249,7 +266,49 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("IotId")
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("LastModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MiniPcId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MiniPcId");
+
+                    b.ToTable("Mikrokontrollers");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.MiniPc", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("IotId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("LastModifiedAt")
@@ -269,7 +328,7 @@ namespace backend.Migrations
 
                     b.HasIndex("RegionId");
 
-                    b.ToTable("Mikrokontrollers");
+                    b.ToTable("MiniPcs");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Parameter", b =>
@@ -298,10 +357,6 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("GroupName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime?>("LastModifiedAt")
                         .HasColumnType("datetime(6)");
 
@@ -314,14 +369,79 @@ namespace backend.Migrations
                     b.Property<double>("MinValue")
                         .HasColumnType("double");
 
+                    b.Property<int>("ParentParamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ParentParametersId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ParentTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentParametersId");
+
+                    b.HasIndex("ParentTypeId");
+
+                    b.ToTable("Parameters");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ParentParameter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("LastModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ParentTypeId")
+                        .HasColumnType("int");
+
                     b.Property<int>("PlantId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ParentTypeId");
+
                     b.HasIndex("PlantId");
 
-                    b.ToTable("Parameters");
+                    b.ToTable("ParentParameters");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ParentType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ParentTypes");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Plant", b =>
@@ -443,21 +563,51 @@ namespace backend.Migrations
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("int");
 
-                    b.Property<int>("MikrocontrollerId")
+                    b.Property<int?>("MikrocontrollerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MiniPcId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Type")
+                    b.Property<int>("ParameterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ParentTypeId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MikrocontrollerId");
 
+                    b.HasIndex("MiniPcId");
+
+                    b.HasIndex("ParameterId");
+
+                    b.HasIndex("ParentTypeId");
+
                     b.ToTable("Sensors");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.TypeActuators", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TypeActuators");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.UserDevice", b =>
@@ -521,13 +671,15 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<DateTime?>("LastModifiedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int?>("LastModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MiniPcId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -540,6 +692,8 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MiniPcId");
+
                     b.ToTable("IdentityIoTs");
                 });
 
@@ -547,11 +701,23 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Model.AppEntity.Mikrokontroller", "MikroController")
                         .WithMany()
-                        .HasForeignKey("MikrocontrollerId")
+                        .HasForeignKey("MikrocontrollerId");
+
+                    b.HasOne("backend.Model.AppEntity.MiniPc", "MiniPc")
+                        .WithMany()
+                        .HasForeignKey("MiniPcId");
+
+                    b.HasOne("backend.Model.AppEntity.TypeActuators", "TypeActuators")
+                        .WithMany("Actuators")
+                        .HasForeignKey("TypeActuatorsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("MikroController");
+
+                    b.Navigation("MiniPc");
+
+                    b.Navigation("TypeActuators");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Data", b =>
@@ -562,24 +728,47 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Model.AppEntity.Sensor", "Sensor")
+                        .WithMany()
+                        .HasForeignKey("SensorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Parameter");
+
+                    b.Navigation("Sensor");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.IotStatus", b =>
                 {
-                    b.HasOne("backend.Model.AppEntity.Mikrokontroller", "Mikrokontroller")
+                    b.HasOne("backend.Model.AppEntity.Mikrokontroller", "MicroController")
                         .WithMany("IotStatus")
-                        .HasForeignKey("MikrokontrollerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("MicroControllerId");
 
-                    b.Navigation("Mikrokontroller");
+                    b.HasOne("backend.Model.AppEntity.MiniPc", "MiniPc")
+                        .WithMany("IotStatus")
+                        .HasForeignKey("MiniPcId");
+
+                    b.Navigation("MicroController");
+
+                    b.Navigation("MiniPc");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Mikrokontroller", b =>
                 {
+                    b.HasOne("backend.Model.AppEntity.MiniPc", "MiniPcs")
+                        .WithMany("Mikrokontrollers")
+                        .HasForeignKey("MiniPcId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MiniPcs");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.MiniPc", b =>
+                {
                     b.HasOne("backend.Model.AppEntity.Region", "Region")
-                        .WithMany("Mikrokontroller")
+                        .WithMany("MiniPcs")
                         .HasForeignKey("RegionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -589,11 +778,34 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Model.AppEntity.Parameter", b =>
                 {
-                    b.HasOne("backend.Model.AppEntity.Plant", "Plant")
+                    b.HasOne("backend.Model.AppEntity.ParentParameter", "ParentParameters")
                         .WithMany("Parameters")
+                        .HasForeignKey("ParentParametersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.AppEntity.ParentType", null)
+                        .WithMany("Parameters")
+                        .HasForeignKey("ParentTypeId");
+
+                    b.Navigation("ParentParameters");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ParentParameter", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.ParentType", "ParentType")
+                        .WithMany()
+                        .HasForeignKey("ParentTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.AppEntity.Plant", "Plant")
+                        .WithMany("ParentParameters")
                         .HasForeignKey("PlantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ParentType");
 
                     b.Navigation("Plant");
                 });
@@ -621,11 +833,31 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Model.AppEntity.Mikrokontroller", "MikroController")
                         .WithMany("Sensor")
-                        .HasForeignKey("MikrocontrollerId")
+                        .HasForeignKey("MikrocontrollerId");
+
+                    b.HasOne("backend.Model.AppEntity.MiniPc", "MiniPc")
+                        .WithMany("Sensor")
+                        .HasForeignKey("MiniPcId");
+
+                    b.HasOne("backend.Model.AppEntity.Parameter", "Parameters")
+                        .WithMany()
+                        .HasForeignKey("ParameterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.AppEntity.ParentType", "ParentTypes")
+                        .WithMany()
+                        .HasForeignKey("ParentTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("MikroController");
+
+                    b.Navigation("MiniPc");
+
+                    b.Navigation("Parameters");
+
+                    b.Navigation("ParentTypes");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.UserDevice", b =>
@@ -637,6 +869,13 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Land");
+                });
+
+            modelBuilder.Entity("backend.Model.IdEntity.IdIoT", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.MiniPc", null)
+                        .WithMany("IdIoTs")
+                        .HasForeignKey("MiniPcId");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Land", b =>
@@ -653,16 +892,42 @@ namespace backend.Migrations
                     b.Navigation("Sensor");
                 });
 
-            modelBuilder.Entity("backend.Model.AppEntity.Plant", b =>
+            modelBuilder.Entity("backend.Model.AppEntity.MiniPc", b =>
+                {
+                    b.Navigation("IdIoTs");
+
+                    b.Navigation("IotStatus");
+
+                    b.Navigation("Mikrokontrollers");
+
+                    b.Navigation("Sensor");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ParentParameter", b =>
                 {
                     b.Navigation("Parameters");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ParentType", b =>
+                {
+                    b.Navigation("Parameters");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.Plant", b =>
+                {
+                    b.Navigation("ParentParameters");
 
                     b.Navigation("Regions");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Region", b =>
                 {
-                    b.Navigation("Mikrokontroller");
+                    b.Navigation("MiniPcs");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.TypeActuators", b =>
+                {
+                    b.Navigation("Actuators");
                 });
 #pragma warning restore 612, 618
         }

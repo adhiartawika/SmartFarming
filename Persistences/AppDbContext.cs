@@ -27,11 +27,17 @@ namespace backend.Persistences
         
         public DbSet<Actuator> Actuators { get; set; }
         public DbSet<Mikrokontroller> Mikrokontrollers { get; set; }
+        public DbSet<MiniPc> MiniPcs {get;set;}
         public DbSet<Sensor> Sensors {get;set;}
         // public DbSet<DataResult> DataResults { get; set; }
         public DbSet<UserDevice> UserDevices { get; set; }
+        public DbSet<ActuatorStatus> ActuatorStatuses {get;set;}
         public DbSet<ApplicationUser> Users { get; set; }
         public DbSet<IdIoT> IdentityIoTs { get; set; }
+        public DbSet<TypeActuators> TypeActuators {get;set;}
+        public DbSet<ParentParameter> ParentParameters {get;set;}
+        public DbSet<ParentType> ParentTypes {get;set;}
+
         // public DbSet<NotificationType> NotificationTypes { get; set; }
         // public DbSet<NotificationContent> NotificationContents { get; set; }
 
@@ -67,7 +73,14 @@ namespace backend.Persistences
         public DbSet<Land> Lands { get ; set ; }
         public DbSet<Region> Regions { get ; set ; }
         public DbSet<IotStatus> IotStatus { get ; set ; }
+
+        public DbSet<MiniPc> MiniPcs {get;set;}
         public DbSet<Parameter> Parameters { get ; set ; }
+        public DbSet<TypeActuators> TypeActuators {get;set;}
+
+        public DbSet<ActuatorStatus> ActuatorStatuses {get;set;}
+        public DbSet<ParentType> ParentTypes {get;set;}
+        public DbSet<ParentParameter> ParentParameters {get;set;}
         public DbSet<Data> Datas { get ; set ; }
         public DbSet<Actuator> Actuators { get; set; }
         public DbSet<Mikrokontroller> Mikrokontrollers{ get; set; }

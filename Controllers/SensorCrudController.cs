@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Model.AppEntity;
@@ -18,15 +21,28 @@ namespace backend.Controllers
 
         [HttpGet]
         public IEnumerable<SensorType> GetSensorTypes(){
+            // return (await this.context.get)
             List<SensorType> types = new List<SensorType>();
-            foreach(int i in Enum.GetValues(typeof(TypeSensor))) {  
-                SensorType  temp = new SensorType{
-                    Id=i,
-                    Name=Enum.GetName(typeof(TypeSensor), i)!.ToString()
+            foreach(var j in this.context.ParentTypes){
+                SensorType temp = new SensorType{
+                    Id = j.Id,
+                    Name = j.Name,
+                    Description = j.Description
                 };
                 types.Add(temp);
+            }
+            // foreach (var Sensortypes in types.ge){
+            // }
+            // for (int i = 0; i < model.ParentTypes.Count(); i++)
+            // foreach( Object ob in)
+            // foreach(int i in Enum.GetValues(typeof(TypeSensor))) {  
+            // //     SensorType  temp = new SensorType{
+            // //         Id=i,
+            // //         Name=Enum.GetName(typeof(TypeSensor), i)!.ToString()
+            // //     };
+            // //     types.Add(temp);
 
-            }  
+            // }  
             return types;
         }
 
@@ -45,8 +61,8 @@ namespace backend.Controllers
         {
             query.Search = query.Search == null ? "" : query.Search.ToLower();
             var q = this.context.Sensors.Where(x=>x.DeletedAt==null)
-            .Include(x => x.MikroController).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
-            .Where(x=>LandId==-1? true: x.MikroController.Region.LandId==LandId)
+            .Include(x=> x.ParentTypes).Include(x => x.MikroController).ThenInclude(x => x.MiniPcs).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
+            .Where(x=>LandId==-1? true: x.MikroController.MiniPcs.Region.LandId==LandId)
             .Where(x => x.Name.ToLower().Contains(query.Search));
             var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync()).Select(x =>
             {
@@ -54,14 +70,15 @@ namespace backend.Controllers
                 {
                     Id = x.Id,
                     Name = x.Name,
-                    TypeName= Enum.GetName(typeof(TypeSensor), x.Type)!.ToString(),
                     Description=x.Description,
-                    LandId=x.MikroController.Region.LandId,
-                    LandName=x.MikroController.Region.Land.Name,
-                    MicroId=x.MikrocontrollerId,
+                    LandId=x.MikroController.MiniPcs.Region.LandId,
+                    LandName=x.MikroController.MiniPcs.Region.Land.Name,
+                    TypeId = x.ParentTypeId,
+                    TypeName = x.ParentTypes.Name,
+                    MicroId=x.MikroController.Id,
                     MicroName=x.MikroController.Name,
-                    RegionId=x.MikroController.RegionId,
-                    RegionName=x.MikroController.Region.Name
+                    RegionId=x.MikroController.MiniPcs.RegionId,
+                    RegionName=x.MikroController.MiniPcs.Region.Name
                 };
             }).ToList();
             return new SensorSearchResponse
@@ -75,17 +92,43 @@ namespace backend.Controllers
             var obj = await this.context.AddAsync(new Sensor{
                 Name = model.Name,
                 Description = model.Description,
-                Type = model.type,
-                MikrocontrollerId = model.MicroId
+                MikrocontrollerId = model.MicroId,
+                ParentTypeId = model.ParentTypeId,
+                ParameterId = model.ParameterId
             });
             return await this.context.SaveChangesAsync();
         }
+
+        // [HttpPost]
+        // public async Task<int> AddSensors([FromBody] AddSensorDto model)
+        // {
+        //     List<ParentType> parenttype = new List<ParentType>();
+            
+        //     for (int i = 0; i < model.ParentTypes.Count(); i++)
+        //     {
+        //         parenttype.Add(new ParentType
+        //         {
+        //             Name = model.ParentTypeId.ElementAt(i).Name,
+        //             Description = model.ParentTypes.ElementAt(i).Description
+        //         });
+        //     }
+        //     var obj_baru = await this.context.AddAsync(new Sensor{
+        //         Name = model.Name,
+        //         Description = model.Description,
+        //         MikrocontrollerId = model.MicroId,
+        //         ParameterId = model.ParameterId,
+        //         ParentTypes = parenttype
+        //     });
+        //     // var obj_baru = await this.context.Sensors.AddAsync(new Sensor { Name = model.Name, LatinName = model.LatinName, Description = model.Description, Parameters = parameters });
+        //     await this.context.SaveChangesAsync();
+        //     return obj_baru.Entity.Id;
+        // }
         [HttpPost]
         public async Task Disconnect([FromBody] SensorConnection model){
              this.context.IotStatus.Add(
                         new IotStatus { 
-                            MikrokontrollerId=model.Id,       
-                            IdIoT=null,
+                            MicroControllerId=model.Id,       
+                            MiniPc=null,
                             IsActive=false,
                             CreatedAt= DateTime.Now
                         });
@@ -96,8 +139,8 @@ namespace backend.Controllers
         public async Task Connect([FromBody] SensorConnection model){
             this.context.IotStatus.Add(
                         new IotStatus { 
-                            MikrokontrollerId=model.Id,       
-                            IdIoT=null,
+                            MicroControllerId=model.Id,       
+                            MiniPc=null,
                             IsActive=true,
                             CreatedAt= DateTime.Now
                         });
@@ -109,7 +152,7 @@ namespace backend.Controllers
             var result = await this.context.Sensors.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==SensorId);
             result.Name = model.Name;
             result.Description = model.Description;
-            result.Type = model.Type;
+            result.ParentTypeId = model.ParentTypeId;
             result.MikrocontrollerId = model.MicroId;
 
             await this.context.SaveChangesAsync();
@@ -123,14 +166,15 @@ namespace backend.Controllers
         }
     }
     public class SensorType{
-         public int Id {get;set;}
+        public int Id {get;set;}
         public string Name {get; set;}
+        public string Description {get; set;}
     }
     public class SensorItemDto{
         public int Id {get;set;}
         public string Name {get; set;}
         public string Description {get;set;}
-        public int Type {get;set;} 
+        public int TypeId {get;set;} 
         public string TypeName {get;set;} 
         public int MicroId {get;set;}
         public string MicroName {get; set;}
@@ -146,15 +190,15 @@ namespace backend.Controllers
     public class AddSensorDto{
         public string Name {get;set;}
         public string Description{get;set;}
-        public TypeSensor type {get;set;} 
+        public int ParentTypeId {get;set;}
         public int MicroId {get;set;}
-
+        public int ParameterId {get;set;}
+        // public List<SensorType> SensorTypes { get; set; }
     }
-
     public class UpdateSensorDto{
         public string Name {get;set;}
         public string Description{get;set;}
-        public TypeSensor Type {get;set;} 
+        public int ParentTypeId {get;set;}
         public int MicroId {get;set;}
     }
     public class SensorSearchResponse : SearchResponse<SensorItemDto>

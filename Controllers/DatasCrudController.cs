@@ -33,13 +33,13 @@ namespace backend.Controllers
             for (int i = 0; i < model.sensor.Count(); i++)
             {
                 var temp = this.context.Sensors
-                            .Include(x => x.MikroController).ThenInclude(x => x.Region).ThenInclude(x => x.Plant).ThenInclude(x => x.Parameters)
+                            .Include(x => x.MikroController).ThenInclude(x => x.MiniPcs).ThenInclude(x => x.Region).ThenInclude(x => x.Plant).ThenInclude(x => x.ParentParameters)
                             .Where(x => x.Id == model.sensor.ElementAt(i).id)
-                            .Select(x => x.MikroController.Region.PlantId).ToList();
+                            .Select(x => x.MikroController.MiniPcs.Region.PlantId).ToList();
 
-                var temp2 = this.context.Parameters
-                            .Include(x => x.Plant)
-                            .Where(x => temp.Contains(x.PlantId) && x.GroupName == model.sensor.ElementAt(i).name)
+                var temp2 = this.context.ParentParameters
+                            .Include(x => x.PlantId)
+                            .Where(x => temp.Contains(x.PlantId) && x.ParentType.Name == model.sensor.ElementAt(i).name)
                             .Select(x => x.Id).FirstOrDefault();
                 this.context.Add(new Data
                 {
@@ -62,7 +62,7 @@ namespace backend.Controllers
             await this.context.SaveChangesAsync();
         }
         [HttpDelete("{dataId}")]
-        public async Task DeleteSensor(int dataId)
+        public async Task DeleteData(int dataId)
         {
             var result = await this.context.Datas.FindAsync(dataId);
             this.context.Datas.Remove(result);

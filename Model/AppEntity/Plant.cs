@@ -10,7 +10,7 @@ namespace backend.Model.AppEntity
     {
         public Plant()
         {
-            this.Parameters = new HashSet<Parameter>();
+            this.ParentParameters = new HashSet<ParentParameter>();
             this.Regions = new HashSet<Region>();
             // this.RegionPlants = new HashSet<RegionPlant>();
         }
@@ -19,7 +19,7 @@ namespace backend.Model.AppEntity
         public string LatinName { get; set; }
         public string Description {get; set; }
     
-        public virtual ICollection<Parameter> Parameters { get; set; }
+        public virtual ICollection<ParentParameter> ParentParameters { get; set; }
         // public virtual ICollection<RegionPlant> RegionPlants {get;set;}
         public virtual ICollection<Region> Regions {get;set;}
 

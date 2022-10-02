@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Persistences;
 
@@ -10,9 +11,10 @@ using backend.Persistences;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220928130055_update2")]
+    partial class update2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -121,50 +123,16 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.HasKey("Id");
+                    b.Property<int>("TypeActuatorsId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("ActuatorTypeId");
+                    b.HasKey("Id");
 
                     b.HasIndex("MikrocontrollerId");
 
+                    b.HasIndex("TypeActuatorsId");
+
                     b.ToTable("Actuators");
-                });
-
-            modelBuilder.Entity("backend.Model.AppEntity.ActuatorStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("ActuatorId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("DeletedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("LastModifiedBy")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("tinyint(1)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActuatorId");
-
-                    b.ToTable("ActuatorStatuses");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Data", b =>
@@ -319,10 +287,6 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -351,10 +315,6 @@ namespace backend.Migrations
 
                     b.Property<int>("RegionId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Secret")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -726,30 +686,19 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Model.AppEntity.Actuator", b =>
                 {
-                    b.HasOne("backend.Model.AppEntity.TypeActuators", "ActuatorType")
-                        .WithMany()
-                        .HasForeignKey("ActuatorTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("backend.Model.AppEntity.Mikrokontroller", "MikroController")
                         .WithMany()
                         .HasForeignKey("MikrocontrollerId");
 
-                    b.Navigation("ActuatorType");
-
-                    b.Navigation("MikroController");
-                });
-
-            modelBuilder.Entity("backend.Model.AppEntity.ActuatorStatus", b =>
-                {
-                    b.HasOne("backend.Model.AppEntity.Actuator", "Actuator")
-                        .WithMany("Status")
-                        .HasForeignKey("ActuatorId")
+                    b.HasOne("backend.Model.AppEntity.TypeActuators", "TypeActuators")
+                        .WithMany("Actuators")
+                        .HasForeignKey("TypeActuatorsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Actuator");
+                    b.Navigation("MikroController");
+
+                    b.Navigation("TypeActuators");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Data", b =>
@@ -904,11 +853,6 @@ namespace backend.Migrations
                         .HasForeignKey("MiniPcId");
                 });
 
-            modelBuilder.Entity("backend.Model.AppEntity.Actuator", b =>
-                {
-                    b.Navigation("Status");
-                });
-
             modelBuilder.Entity("backend.Model.AppEntity.Land", b =>
                 {
                     b.Navigation("Region");
@@ -952,6 +896,11 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Model.AppEntity.Region", b =>
                 {
                     b.Navigation("MiniPcs");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.TypeActuators", b =>
+                {
+                    b.Navigation("Actuators");
                 });
 #pragma warning restore 612, 618
         }

@@ -19,15 +19,16 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<IEnumerable<RegionsItemDto>> ShowRegion()
         {
-            return (await this.context.Regions.Where(x=>x.DeletedAt==null).Include(x => x.Mikrokontroller).Include(x => x.Land).ToListAsync()).Select(x => new RegionsItemDto
+            return (await this.context.Regions.Where(x=>x.DeletedAt==null).Include(x => x.MiniPcs).ThenInclude(x => x.Mikrokontrollers).Include(x => x.Land).ToListAsync()).Select(x => new RegionsItemDto
             {
                 Id = x.Id,
                 Name = x.Name,
                 RegionDescription = x.RegionDescription,
                 CordinateRegion = x.CordinateRegion,
-                NMicrocontroller = x.Mikrokontroller.Count(),
+                NMiniPc = x.MiniPcs.Count(),
                 LandId = x.LandId,
-                LandName = x.Land.Name
+                LandName = x.Land.Name, 
+                NMicrocontroller = x.MiniPcs.Select( t => t.Mikrokontrollers).Count()
             });
         }
         [HttpGet("{LandId}")]
@@ -60,7 +61,8 @@ namespace backend.Controllers
             var q = this.context.Regions.Where(x=>x.DeletedAt==null)
             // .Include(x=>x.RegionPlant).ThenInclude(x=>x.Plant)
             .Include(x=>x.Plant)
-            .Include(x => x.Mikrokontroller).Include(x => x.Land).Where(x => x.Name.ToLower().Contains(query.Search));
+            .Include(x => x.MiniPcs).ThenInclude(x => x.Mikrokontrollers)
+            .Include(x => x.MiniPcs).Include(x => x.Land).Where(x => x.Name.ToLower().Contains(query.Search));
             var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync()).Select(x =>
             {
                 // var lastPlant = x.RegionPlant !=null && x.RegionPlant.Count()>0? x.RegionPlant.OrderBy(x=>x.CreatedAt).LastOrDefault()!.Plant.Name  :null;
@@ -69,12 +71,13 @@ namespace backend.Controllers
                     Id = x.Id,
                     Name = x.Name,//x.RegionPlant !=null && x.RegionPlant.Count()>0? x.RegionPlant.OrderBy(x=>x.CreatedAt).LastOrDefault()!.Plant.Name  :"-",
                     CordinateRegion = x.CordinateRegion,
-                    NMicrocontroller = x.Mikrokontroller.Count(),
+                    NMiniPc = x.MiniPcs.Count(),
                     RegionDescription = x.RegionDescription,
                     LandId = x.LandId,
                     LandName = x.Land.Name,
                     PlantId=x.PlantId,
-                    PlantName=x.Plant.Name
+                    PlantName=x.Plant.Name,
+                    NMicrocontroller = x.MiniPcs.Select( t => t.Mikrokontrollers).Count()
                     // PlantId= x.RegionPlant !=null && x.RegionPlant.Count()>0? x.RegionPlant.OrderBy(x=>x.CreatedAt).LastOrDefault()!.Plant.Id  :0,
                     // PlantName= x.RegionPlant !=null && x.RegionPlant.Count()>0? x.RegionPlant.OrderBy(x=>x.CreatedAt).LastOrDefault()!.Plant.Name  :"-",
                 };
@@ -129,12 +132,13 @@ namespace backend.Controllers
         public string Name { get; set; }
         public string RegionDescription { get; set; }
         public string CordinateRegion { get; set; }
-        public int NMicrocontroller { get; set; }
+        public int NMiniPc { get; set; }
         public int LandId { get; set; }
         public string LandName { get; set; }
         public int PlantId { get; set; }
         public string PlantName { get; set; }
-
+        
+        public int NMicrocontroller {get;set;}
 
     }
     public class RegionItemMinimalDto

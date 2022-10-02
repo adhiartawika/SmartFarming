@@ -14,9 +14,10 @@ namespace backend.Model.AppEntity
         }
         
         public int Id { get; set; }
-        public int MikrokontrollerId { get; set; }
-        public virtual Mikrokontroller Mikrokontroller{ get; set; }
+        public int? MicroControllerId { get; set; }
+        public virtual Mikrokontroller MicroController { get; set; }
+        public int? MiniPcId { get; set; }
+        public virtual MiniPc MiniPc { get; set; }
         public bool IsActive { get; set; }
-        public int? IdIoT { get; set; }
     }
 }

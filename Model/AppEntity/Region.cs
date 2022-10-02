@@ -11,7 +11,7 @@ namespace backend.Model.AppEntity
         public Region()
         {
             // this.RegionPlant = new HashSet<RegionPlant>();
-            this.Mikrokontroller = new HashSet<Mikrokontroller>();
+            this.MiniPcs = new HashSet<MiniPc>();
         }
         public int Id{get;set;}
         public string Name{get;set;}
@@ -21,7 +21,10 @@ namespace backend.Model.AppEntity
         public virtual Land Land { get; set; }  
         public int PlantId{get;set;}
         public virtual Plant Plant {get;set;}
+
+        // public int MiniPcId {get;set;}
+        // public virtual MiniPc MiniPcs {get; set;}
+        public virtual ICollection<MiniPc> MiniPcs {get;set;}
         // public virtual ICollection<RegionPlant> RegionPlant { get; set; }
-        public virtual ICollection<Mikrokontroller> Mikrokontroller { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Persistences;
 
@@ -10,9 +11,10 @@ using backend.Persistences;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220929082343_update01")]
+    partial class update01
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,43 +130,6 @@ namespace backend.Migrations
                     b.HasIndex("MikrocontrollerId");
 
                     b.ToTable("Actuators");
-                });
-
-            modelBuilder.Entity("backend.Model.AppEntity.ActuatorStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("ActuatorId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("DeletedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("LastModifiedBy")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("tinyint(1)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActuatorId");
-
-                    b.ToTable("ActuatorStatuses");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Data", b =>
@@ -319,10 +284,6 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -351,10 +312,6 @@ namespace backend.Migrations
 
                     b.Property<int>("RegionId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Secret")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -741,17 +698,6 @@ namespace backend.Migrations
                     b.Navigation("MikroController");
                 });
 
-            modelBuilder.Entity("backend.Model.AppEntity.ActuatorStatus", b =>
-                {
-                    b.HasOne("backend.Model.AppEntity.Actuator", "Actuator")
-                        .WithMany("Status")
-                        .HasForeignKey("ActuatorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Actuator");
-                });
-
             modelBuilder.Entity("backend.Model.AppEntity.Data", b =>
                 {
                     b.HasOne("backend.Model.AppEntity.Parameter", "Parameter")
@@ -902,11 +848,6 @@ namespace backend.Migrations
                     b.HasOne("backend.Model.AppEntity.MiniPc", null)
                         .WithMany("IdIoTs")
                         .HasForeignKey("MiniPcId");
-                });
-
-            modelBuilder.Entity("backend.Model.AppEntity.Actuator", b =>
-                {
-                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Land", b =>

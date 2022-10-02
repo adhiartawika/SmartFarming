@@ -31,19 +31,19 @@ namespace backend.Hubs
             {
                 var id = int.Parse(roomId.Split("-_-")[0]);
                 //var id = this.currentIoTService.IoTId;
-                var gh = this.appContext.Mikrokontrollers.Where(x => x.Id == id).FirstOrDefault();
+                var gh = this.appContext.Mikrokontrollers.Where(x => x.Id == id).Include(x => x.MiniPcs).FirstOrDefault();
                 if (gh != null)
                 {
                     this.appContext.IotStatus.Add(
                         new IotStatus
                         {
-                            MikrokontrollerId = gh.Id,
-                            IdIoT = null,
+                            MicroControllerId = gh.Id,
+                            MiniPcId = null,
                             IsActive = true,
                             CreatedAt = this.dateTime.Now
                         });
                     await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
-                    await Clients.Group(gh.RegionId.ToString()).SendAsync("IoTChangeStatus", new IoTChangeStatusDto { Id = id, IsActive = true });
+                    await Clients.Group(gh.MiniPcs.RegionId.ToString()).SendAsync("IoTChangeStatus", new IoTChangeStatusDto { Id = id, IsActive = true });
                 }
                 DataParamSensorHub.connGroup.Add(Context.ConnectionId, id + "_gh");
                 await Groups.AddToGroupAsync(Context.ConnectionId, id + "_gh");
@@ -68,25 +68,25 @@ namespace backend.Hubs
                     List<IotStatus> tempIotStatus = new List<IotStatus>();
                     tempIotStatus.Add(new IotStatus
                     {
-                        MikrokontrollerId = gh.Id,
-                        IdIoT = null,
+                        MicroControllerId = gh.Id,
+                        MiniPcId = null,
                         IsActive = false,
                         CreatedAt = this.dateTime.Now
                     });
-                    var tempEsps = this.appContext.Mikrokontrollers.Include(x => x.Region).Where(x => x.RegionId == gh.RegionId).ToList();
+                    var tempEsps = this.appContext.Mikrokontrollers.Include(x => x.MiniPcs).ThenInclude(x => x.Region).Where(x => x.Id == gh.MiniPcs.RegionId).ToList();
                     for (int i = 0; i < tempEsps.Count(); i++)
                     {
                         tempIotStatus.Add(new IotStatus
                         {
-                            MikrokontrollerId = tempEsps.ElementAt(i).Id,
-                            IdIoT = null,
+                            MicroControllerId = tempEsps.ElementAt(i).Id,
+                            MiniPcId = null,
                             IsActive = false,
                             CreatedAt = this.dateTime.Now
                         });
                     }
                     this.appContext.IotStatus.AddRange(tempIotStatus);
                     await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
-                    await Clients.Group(gh.RegionId.ToString()).SendAsync("IoTChangeStatus", new IoTChangeStatusDto { Id = id, IsActive = false });
+                    await Clients.Group(gh.MiniPcs.RegionId.ToString()).SendAsync("IoTChangeStatus", new IoTChangeStatusDto { Id = id, IsActive = false });
                 }
                 DataParamSensorHub.connGroup.Add(Context.ConnectionId, id + "_gh");
                 await Groups.AddToGroupAsync(Context.ConnectionId, id + "_gh");
@@ -113,25 +113,25 @@ namespace backend.Hubs
                         List<IotStatus> tempIotStatus = new List<IotStatus>();
                         tempIotStatus.Add(new IotStatus
                         {
-                            MikrokontrollerId = gh.Id,
-                            IdIoT = null,
+                            MicroControllerId = gh.Id,
+                            MiniPcId = null,
                             IsActive = false,
                             CreatedAt = this.dateTime.Now
                         });
-                        var tempEsps = this.appContext.Mikrokontrollers.Include(x => x.Region).Where(x => x.RegionId == gh.RegionId).ToList();
+                        var tempEsps = this.appContext.Mikrokontrollers.Include(x => x.MiniPcs).ThenInclude(x => x.Region).Where(x => x.Id == gh.MiniPcs.RegionId).ToList();
                         for (int i = 0; i < tempEsps.Count(); i++)
                         {
                             tempIotStatus.Add(new IotStatus
                             {
-                                MikrokontrollerId = tempEsps.ElementAt(i).Id,
-                                IdIoT = null,
+                                MicroControllerId = tempEsps.ElementAt(i).Id,
+                                MiniPcId = null,
                                 IsActive = false,
                                 CreatedAt = this.dateTime.Now
                             });
                         }
                         this.appContext.IotStatus.AddRange(tempIotStatus);
                         await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
-                        await Clients.Group(gh.RegionId.ToString()).SendAsync("IoTChangeStatus", new IoTChangeStatusDto { Id = id, IsActive = false });
+                        await Clients.Group(gh.MiniPcs.RegionId.ToString()).SendAsync("IoTChangeStatus", new IoTChangeStatusDto { Id = id, IsActive = false });
                     }
                     DataParamSensorHub.connGroup.Remove(Context.ConnectionId);
 

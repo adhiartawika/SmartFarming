@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace backend.Migrations
 {
-    public partial class tambahanku6 : Migration
+    public partial class done2 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -70,6 +70,23 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ParentTypes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ParentTypes", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Plants",
                 columns: table => new
                 {
@@ -91,6 +108,23 @@ namespace backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Plants", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "TypeActuators",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TypeActuators", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -165,20 +199,13 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Parameters",
+                name: "ParentParameters",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    GroupName = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Description = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    MinValue = table.Column<double>(type: "double", nullable: false),
-                    MaxValue = table.Column<double>(type: "double", nullable: false),
-                    Color = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     PlantId = table.Column<int>(type: "int", nullable: false),
+                    ParentTypeId = table.Column<int>(type: "int", nullable: false),
                     CreatedBy = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
@@ -188,9 +215,15 @@ namespace backend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Parameters", x => x.Id);
+                    table.PrimaryKey("PK_ParentParameters", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Parameters_Plants_PlantId",
+                        name: "FK_ParentParameters_ParentTypes_ParentTypeId",
+                        column: x => x.ParentTypeId,
+                        principalTable: "ParentTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ParentParameters_Plants_PlantId",
                         column: x => x.PlantId,
                         principalTable: "Plants",
                         principalColumn: "Id",
@@ -238,22 +271,70 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Datas",
+                name: "Parameters",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    ParameterId = table.Column<int>(type: "int", nullable: false),
-                    ValueParameter = table.Column<decimal>(type: "decimal(7,3)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    ParentParamId = table.Column<int>(type: "int", nullable: false),
+                    ParentParametersId = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    MinValue = table.Column<double>(type: "double", nullable: false),
+                    MaxValue = table.Column<double>(type: "double", nullable: false),
+                    Color = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ParentTypeId = table.Column<int>(type: "int", nullable: true),
+                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    LastModifiedBy = table.Column<int>(type: "int", nullable: true),
+                    LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    DeletedBy = table.Column<int>(type: "int", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Datas", x => x.Id);
+                    table.PrimaryKey("PK_Parameters", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Datas_Parameters_ParameterId",
-                        column: x => x.ParameterId,
-                        principalTable: "Parameters",
+                        name: "FK_Parameters_ParentParameters_ParentParametersId",
+                        column: x => x.ParentParametersId,
+                        principalTable: "ParentParameters",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Parameters_ParentTypes_ParentTypeId",
+                        column: x => x.ParentTypeId,
+                        principalTable: "ParentTypes",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "MiniPcs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RegionId = table.Column<int>(type: "int", nullable: false),
+                    IotId = table.Column<int>(type: "int", nullable: true),
+                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    LastModifiedBy = table.Column<int>(type: "int", nullable: true),
+                    LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    DeletedBy = table.Column<int>(type: "int", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MiniPcs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MiniPcs_Regions_RegionId",
+                        column: x => x.RegionId,
+                        principalTable: "Regions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -269,8 +350,8 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    RegionId = table.Column<int>(type: "int", nullable: false),
-                    IotId = table.Column<int>(type: "int", nullable: false),
+                    MiniPcId = table.Column<int>(type: "int", nullable: false),
+                    RegionId = table.Column<int>(type: "int", nullable: true),
                     CreatedBy = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
@@ -282,11 +363,16 @@ namespace backend.Migrations
                 {
                     table.PrimaryKey("PK_Mikrokontrollers", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Mikrokontrollers_MiniPcs_MiniPcId",
+                        column: x => x.MiniPcId,
+                        principalTable: "MiniPcs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_Mikrokontrollers_Regions_RegionId",
                         column: x => x.RegionId,
                         principalTable: "Regions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -300,8 +386,10 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Type = table.Column<int>(type: "int", nullable: false),
-                    MikrocontrollerId = table.Column<int>(type: "int", nullable: false),
+                    MikrocontrollerId = table.Column<int>(type: "int", nullable: true),
+                    MiniPcId = table.Column<int>(type: "int", nullable: true),
+                    ActuatorTypeId = table.Column<int>(type: "int", nullable: false),
+                    TypeActuatorsId = table.Column<int>(type: "int", nullable: false),
                     CreatedBy = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
@@ -316,6 +404,16 @@ namespace backend.Migrations
                         name: "FK_Actuators_Mikrokontrollers_MikrocontrollerId",
                         column: x => x.MikrocontrollerId,
                         principalTable: "Mikrokontrollers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Actuators_MiniPcs_MiniPcId",
+                        column: x => x.MiniPcId,
+                        principalTable: "MiniPcs",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Actuators_TypeActuators_TypeActuatorsId",
+                        column: x => x.TypeActuatorsId,
+                        principalTable: "TypeActuators",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -327,20 +425,24 @@ namespace backend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MikrokontrollerId = table.Column<int>(type: "int", nullable: false),
+                    MicroControllerId = table.Column<int>(type: "int", nullable: true),
+                    MiniPcId = table.Column<int>(type: "int", nullable: true),
                     IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    IdIoT = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_IotStatus", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_IotStatus_Mikrokontrollers_MikrokontrollerId",
-                        column: x => x.MikrokontrollerId,
+                        name: "FK_IotStatus_Mikrokontrollers_MicroControllerId",
+                        column: x => x.MicroControllerId,
                         principalTable: "Mikrokontrollers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_IotStatus_MiniPcs_MiniPcId",
+                        column: x => x.MiniPcId,
+                        principalTable: "MiniPcs",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -354,8 +456,10 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Type = table.Column<int>(type: "int", nullable: false),
-                    MikrocontrollerId = table.Column<int>(type: "int", nullable: false),
+                    MikrocontrollerId = table.Column<int>(type: "int", nullable: true),
+                    MiniPcId = table.Column<int>(type: "int", nullable: true),
+                    ParentTypeId = table.Column<int>(type: "int", nullable: false),
+                    ParameterId = table.Column<int>(type: "int", nullable: false),
                     CreatedBy = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
@@ -370,6 +474,51 @@ namespace backend.Migrations
                         name: "FK_Sensors_Mikrokontrollers_MikrocontrollerId",
                         column: x => x.MikrocontrollerId,
                         principalTable: "Mikrokontrollers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Sensors_MiniPcs_MiniPcId",
+                        column: x => x.MiniPcId,
+                        principalTable: "MiniPcs",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Sensors_Parameters_ParameterId",
+                        column: x => x.ParameterId,
+                        principalTable: "Parameters",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Sensors_ParentTypes_ParentTypeId",
+                        column: x => x.ParentTypeId,
+                        principalTable: "ParentTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Datas",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SensorId = table.Column<int>(type: "int", nullable: false),
+                    ParameterId = table.Column<int>(type: "int", nullable: false),
+                    ValueParameter = table.Column<decimal>(type: "decimal(7,3)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Datas", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Datas_Parameters_ParameterId",
+                        column: x => x.ParameterId,
+                        principalTable: "Parameters",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Datas_Sensors_SensorId",
+                        column: x => x.SensorId,
+                        principalTable: "Sensors",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -381,14 +530,39 @@ namespace backend.Migrations
                 column: "MikrocontrollerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Actuators_MiniPcId",
+                table: "Actuators",
+                column: "MiniPcId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Actuators_TypeActuatorsId",
+                table: "Actuators",
+                column: "TypeActuatorsId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Datas_ParameterId",
                 table: "Datas",
                 column: "ParameterId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_IotStatus_MikrokontrollerId",
+                name: "IX_Datas_SensorId",
+                table: "Datas",
+                column: "SensorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IotStatus_MicroControllerId",
                 table: "IotStatus",
-                column: "MikrokontrollerId");
+                column: "MicroControllerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IotStatus_MiniPcId",
+                table: "IotStatus",
+                column: "MiniPcId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Mikrokontrollers_MiniPcId",
+                table: "Mikrokontrollers",
+                column: "MiniPcId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mikrokontrollers_RegionId",
@@ -396,8 +570,28 @@ namespace backend.Migrations
                 column: "RegionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Parameters_PlantId",
+                name: "IX_MiniPcs_RegionId",
+                table: "MiniPcs",
+                column: "RegionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Parameters_ParentParametersId",
                 table: "Parameters",
+                column: "ParentParametersId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Parameters_ParentTypeId",
+                table: "Parameters",
+                column: "ParentTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ParentParameters_ParentTypeId",
+                table: "ParentParameters",
+                column: "ParentTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ParentParameters_PlantId",
+                table: "ParentParameters",
                 column: "PlantId");
 
             migrationBuilder.CreateIndex(
@@ -414,6 +608,21 @@ namespace backend.Migrations
                 name: "IX_Sensors_MikrocontrollerId",
                 table: "Sensors",
                 column: "MikrocontrollerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sensors_MiniPcId",
+                table: "Sensors",
+                column: "MiniPcId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sensors_ParameterId",
+                table: "Sensors",
+                column: "ParameterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sensors_ParentTypeId",
+                table: "Sensors",
+                column: "ParentTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserDevices_LandId",
@@ -436,22 +645,34 @@ namespace backend.Migrations
                 name: "IotStatus");
 
             migrationBuilder.DropTable(
-                name: "Sensors");
-
-            migrationBuilder.DropTable(
                 name: "UserDevices");
 
             migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
-                name: "Parameters");
+                name: "TypeActuators");
+
+            migrationBuilder.DropTable(
+                name: "Sensors");
 
             migrationBuilder.DropTable(
                 name: "Mikrokontrollers");
 
             migrationBuilder.DropTable(
+                name: "Parameters");
+
+            migrationBuilder.DropTable(
+                name: "MiniPcs");
+
+            migrationBuilder.DropTable(
+                name: "ParentParameters");
+
+            migrationBuilder.DropTable(
                 name: "Regions");
+
+            migrationBuilder.DropTable(
+                name: "ParentTypes");
 
             migrationBuilder.DropTable(
                 name: "Lands");
