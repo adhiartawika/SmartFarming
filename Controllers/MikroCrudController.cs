@@ -145,6 +145,7 @@ namespace backend.Controllers
                     Id = x.Id,
                     Name = x.Name,
                     Description=x.Description,
+<<<<<<< HEAD
                     MiniPcId = x.MiniPcId,
                     MiniPcName = x.MiniPcs.Name,
                     LandId=x.MiniPcs.Region.Land.Id,
@@ -153,6 +154,12 @@ namespace backend.Controllers
                     RegionName=x.MiniPcs.Region.Name,
                     PlantId = x.MiniPcs.Region.Plant.Id,
                     PlantName = x.MiniPcs.Region.Plant.Name,
+=======
+                    LandId=x.Region.Land.Id,
+                    LandName=x.Region.Land.Name,
+                    RegionId=x.RegionId,
+                    RegionName= x.Sensor.Count()>0?  x.Region.Plant.Name:"-",
+>>>>>>> 4566a3985c690a8df07b52c2d4a8ff467e8ae17d
                     // RegionName=x.Region.RegionPlant !=null && x.Region.RegionPlant.Count()>0? x.Region.RegionPlant.OrderBy(x=>x.CreatedAt).LastOrDefault()!.Plant.Name  :"-",//x.Region.Name,
                     Status= x.IotStatus == null || x.IotStatus.Count()==0 ? false : x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!.IsActive
                 };

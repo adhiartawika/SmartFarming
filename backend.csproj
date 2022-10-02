@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <SpaRoot>ClientApp\</SpaRoot>
-    <SpaProxyServerUrl>https://localhost:44455</SpaProxyServerUrl>
+    <SpaProxyServerUrl>http://localhost:4200</SpaProxyServerUrl>
     <!-- <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand> -->
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
@@ -23,6 +23,10 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.4.2" />
     <PackageReference Include="Mimekit" Version="3.4.0" />
@@ -61,13 +65,13 @@
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build prod" /> -->
 
     <!-- Include the newly-built files in the publish output -->
-    <!-- <ItemGroup>
+     <ItemGroup>
       <DistFiles Include="$(SpaRoot)dist\**; $(SpaRoot)dist-server\**" />
       <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
         <RelativePath>wwwroot\%(RecursiveDir)%(FileName)%(Extension)</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       </ResolvedFileToPublish>
-    </ItemGroup> -->
+    </ItemGroup> 
   </Target>
 </Project>
