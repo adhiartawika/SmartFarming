@@ -1,0 +1,3 @@
+event                               where                       Description
+IoTChangeStatus                     Web                         Listen id iot to change connection IoTChangeStatus
+on_req_camera                       Rpi                         Listen RTC Peer Connection description

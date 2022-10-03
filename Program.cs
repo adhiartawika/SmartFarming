@@ -130,7 +130,7 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllerRoute(
                    name: "default",
                    pattern: "{controller}/{action=Index}/{id?}");
-    endpoints.MapHub<DataParamSensorHub>("/DataParamSensorHub").AllowAnonymous();
+    endpoints.MapHub<FarmingHub>("/FarmingHub").AllowAnonymous();
 });
 //app.MapControllerRoute(
 //    name: "default",
