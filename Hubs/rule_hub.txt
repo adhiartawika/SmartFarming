@@ -1,3 +1,13 @@
-event                               where                       Description
-IoTChangeStatus                     Web                         Listen id iot to change connection IoTChangeStatus
-on_req_camera                       Rpi                         Listen RTC Peer Connection description
+event                       where         Description
+
+RPIStatusChange             Web           Listen id RPI and ESPs to change status connection in front end
+ReqActivatingCamera         Rpi           Listen to req RTC Peer Connection description
+AnswerReqActivatingCamera   Web           Listen to answer from RPI to get RPI's PC Description
+AnswerReqCamera             Server        Passing PC Description to User  
+ReqCamera                   Server        Passing PC Description to RPI
+RPIJoinRoom                 Server        Listen to change RPI and ESPs to change status connection to true. and then passing to front end via event RPIStatusChange
+RPILeaveRoom                Server        Listen to change RPI and ESPs to change status connection to false. and then passing to front end via event RPIStatusChange
+UserJoinRoom                Server        Listen to add user (land id) into group connection
+UserLeaveRoom               Server        Listen to remove user (land id) into group connection
+UserRegionJoinRoom          Server        Listen to add user (minipc id) into group connection
+UserRegionLeaveRoom         Server        Listen to remove user (minipc id) into group connection

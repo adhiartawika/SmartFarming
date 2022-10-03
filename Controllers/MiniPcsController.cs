@@ -36,6 +36,26 @@ namespace backend.Controllers
                 }).ToList()
             });
         }
+        [HttpGet("{LandId}")]
+        public async Task<IEnumerable<MiniPcItem2DTO>> ShowMiniPcInALand(int LandId){
+            return (await this.context.MiniPcs
+            .Include(x =>x.Region).ThenInclude(x=>x.Land)
+            .Include(x=>x.Region).ThenInclude(x=>x.Plant)
+            .Include(x=>x.IotStatus.OrderByDescending(y=>y.CreatedAt).Take(1))
+            .Where(x=>x.Region.LandId==LandId)
+            .ToListAsync()).Select(y => new MiniPcItem2DTO{
+                Id = y.Id,
+                Name = y.Name,
+                Description = y.Description,
+                RegionId = y.Region.Id,
+                RegionName = y.Region.Name,
+                LandId=y.Region.LandId,
+                LandName=y.Region.Land.Name,
+                PlantId=y.Region.Plant.Id,
+                PlantName=y.Region.Plant.Name,
+                Status = y.IotStatus.Count() > 0 ?y.IotStatus.FirstOrDefault()!.IsActive:false
+            });
+        }
         // [HttpPost]
         // public async Task<int> AddMiniPc([FromBody] AddMiniPcDto model){
         //     var obj = await this.context.AddAsync(new MiniPc{
@@ -138,4 +158,17 @@ namespace backend.Controllers
         public string Description {get; set;}
         public int RegionId { get; set; }
     }
+    public class MiniPcItem2DTO{
+        public int Id {get;set;}
+        public string Name {get;set;}
+        public int RegionId {get;set;}
+        public string RegionName {get;set;}
+        public string Description {get;set;}
+        public int LandId {get;set;}
+        public string LandName {get;set;}
+        public bool Status {get;set;}
+        public int PlantId {get;set;}
+        public string PlantName {get;set;}
+    }
+
 }

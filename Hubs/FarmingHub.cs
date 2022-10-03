@@ -14,6 +14,7 @@ namespace backend.Hubs
     public class FarmingEndCategory {
         public readonly static string RPI = "_RPI";
         public readonly static string USER = "_USER";
+        public readonly static string USER_REGION = "_USERREGION";
 
     }
     [AllowAnonymous]
@@ -133,6 +134,27 @@ namespace backend.Hubs
             }
             
         }
+        
+        public async Task UserRegionJoinRoom(string roomId)
+        {
+            Console.WriteLine(roomId);
+            if (roomId.Contains(FarmingEndCategory.USER_REGION))//
+            {
+                FarmingHub.connGroup.Add(Context.ConnectionId, roomId);
+                await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+            }
+        }
+
+        public async Task UserRegionLeaveRoom(string roomId)
+        {
+            if (roomId.Contains(FarmingEndCategory.USER_REGION))
+            {
+                FarmingHub.connGroup.Remove(Context.ConnectionId);
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
+            }
+            
+        }
+
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             try
@@ -176,6 +198,10 @@ namespace backend.Hubs
                 {
                     FarmingHub.connGroup.Remove(Context.ConnectionId);
                 }
+                else if (tryVal && roomId!.Contains(FarmingEndCategory.USER_REGION))
+                {
+                    FarmingHub.connGroup.Remove(Context.ConnectionId);
+                }
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId!);
                 await base.OnDisconnectedAsync(exception);
             }
@@ -185,6 +211,8 @@ namespace backend.Hubs
             }
         }
     
+        
+
         public async Task ReqCamera(NegotiatingRTCPCWithIdDto model)
         {
             await Clients.Group(model.Id.ToString()+FarmingEndCategory.RPI).SendAsync("ReqActivatingCamera", new NegotiatingRTCPCDto { sdp=model.Data.sdp, type = model.Data.type});
@@ -192,7 +220,7 @@ namespace backend.Hubs
         public async Task AnswerReqCamera(NegotiatingRTCPCWithIdDto model)
         {
             var mnpc = await this.appContext.MiniPcs.Include(x=>x.Region).FirstOrDefaultAsync(x=>x.Id==model.Id);
-            await Clients.Group(mnpc!.Region.LandId.ToString()+FarmingEndCategory.USER).SendAsync("AnswerReqActivatingCamera", new NegotiatingRTCPCDto { sdp=model.Data.sdp, type = model.Data.type});
+            await Clients.Group(mnpc!.RegionId.ToString()+FarmingEndCategory.USER_REGION).SendAsync("AnswerReqActivatingCamera", new NegotiatingRTCPCDto { sdp=model.Data.sdp, type = model.Data.type});
         }
     }
 
