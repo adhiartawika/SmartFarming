@@ -31,7 +31,10 @@ var settings = builder.Configuration.GetConnectionString("MySqlConnectionApp");
 var mailKitOptions = builder.Configuration.GetSection("EmailSettings").Get<MailKitOptions>();
 // Add services to the container.
 builder.Services.AddSignalR();
-
+builder.Services.AddCors(x=>x.AddDefaultPolicy(y=>{
+    y.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+    y.AllowCredentials().WithOrigins("http://localhost:4200");
+}));
 builder.Services.AddControllersWithViews().AddJsonOptions(jsonOptions =>
                 {
                     jsonOptions.JsonSerializerOptions.PropertyNamingPolicy = null;
@@ -123,6 +126,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
