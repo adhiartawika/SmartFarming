@@ -23,8 +23,8 @@ namespace backend.Model.AppEntity
         public virtual ICollection<Data> Datas { get; set; }
         public int ParentTypeId {get;set;}
         public virtual ParentType ParentType {get;set;}
-        public int ParameterId {get; set;}
-        public virtual Parameter Parameter {get;set;}
+        public int ParentParamId {get; set;}
+        public virtual ParentParameter ParentParam {get;set;}
     }
 
 }

@@ -44,6 +44,7 @@ builder.Services.AddControllersWithViews().AddJsonOptions(jsonOptions =>
 // builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 //services.AddSingleton<ICurrentUserService, CurrentUserService>();
 //services.AddSingleton<ICurrentUserService, CurrentUsesrService>();
+builder.Services.AddSingleton<IConfiguration>(configuration);
 builder.Services.AddScoped<IDateTime, DateTimeService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ICurrentIoTService, CurrentIoTService>();

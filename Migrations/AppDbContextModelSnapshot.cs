@@ -604,7 +604,7 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("ParameterId")
+                    b.Property<int>("ParentParamId")
                         .HasColumnType("int");
 
                     b.Property<int>("ParentTypeId")
@@ -614,7 +614,7 @@ namespace backend.Migrations
 
                     b.HasIndex("MikrocontrollerId");
 
-                    b.HasIndex("ParameterId");
+                    b.HasIndex("ParentParamId");
 
                     b.HasIndex("ParentTypeId");
 
@@ -872,9 +872,9 @@ namespace backend.Migrations
                         .WithMany("Sensor")
                         .HasForeignKey("MikrocontrollerId");
 
-                    b.HasOne("backend.Model.AppEntity.Parameter", "Parameter")
+                    b.HasOne("backend.Model.AppEntity.ParentParameter", "ParentParam")
                         .WithMany()
-                        .HasForeignKey("ParameterId")
+                        .HasForeignKey("ParentParamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -886,7 +886,7 @@ namespace backend.Migrations
 
                     b.Navigation("MikroController");
 
-                    b.Navigation("Parameter");
+                    b.Navigation("ParentParam");
 
                     b.Navigation("ParentType");
                 });

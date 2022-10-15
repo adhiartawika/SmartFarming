@@ -62,11 +62,39 @@ namespace backend.Seeders
                 await ctx.SaveChangesAsync();
             }
         }
+        public static async Task SeedActuatorTypeAsync(AppDbContext ctx)
+        {
+            if (!(ctx.TypeActuators.ToList().Count()>0))
+            {
+
+                ctx.TypeActuators.AddRange(
+                    new TypeActuators
+                    {
+                        Id = 1,
+                        Name = "Servo",
+                        Description= "Servo"
+                    },
+                    new TypeActuators
+                    {
+                        Id = 2,
+                        Name = "Waterpump",
+                        Description = "Waterpump" //5 sensor berdasrkan jumlah enum pas itu
+                    },
+                    new TypeActuators
+                    {
+                        Id = 3,
+                        Name = "Camera",
+                        Description = "Camera"
+                    }
+                ); ; ;
+                await ctx.SaveChangesAsync();
+            }
+        }
         public static async Task SeedPlantAsync(AppDbContext ctx)
         {
             if (!(ctx.Plants.ToList().Count()>0))
             {
-                var p = new List<Parameter>();
+                var p = new List<Parameter>(); //ph tanah
                 p.Add( new Parameter
                 {
                     //3 parameter unique optimal low ~ high ph basa 
@@ -79,7 +107,7 @@ namespace backend.Seeders
                 p.Add(new Parameter
                 {
                     Id = 2,
-                    Description ="mungkin optimal",
+                    Description ="Optimal",
                     MinValue = 13,
                     MaxValue = 14,
                     Color = "0.5",
@@ -87,17 +115,17 @@ namespace backend.Seeders
                 p.Add(new Parameter
                 {
                     Id = 3,
-                    Description ="basa",
+                    Description ="Basa",
                     MinValue = 13,
                     MaxValue = 14,
                     Color = "0.5",
                 });
-                var p2 = new List<Parameter>();
+                var p2 = new List<Parameter>();//suhu tanah
                 p2.Add( new Parameter
                 {
                     //3 parameter unique optimal low ~ high ph basa 
                     Id = 4,
-                    Description="Asam",
+                    Description="Dingin",
                     MinValue=0,
                     MaxValue=7,
                     Color="0.5",
@@ -105,7 +133,7 @@ namespace backend.Seeders
                 p2.Add(new Parameter
                 {
                     Id = 5,
-                    Description ="mungkin optimal",
+                    Description ="Optimal",
                     MinValue = 13,
                     MaxValue = 14,
                     Color = "0.5",
@@ -113,7 +141,85 @@ namespace backend.Seeders
                 p2.Add(new Parameter
                 {
                     Id = 6,
-                    Description ="basa",
+                    Description ="Panas",
+                    MinValue = 13,
+                    MaxValue = 14,
+                    Color = "0.5",
+                });
+                var p3 = new List<Parameter>();//kelembapan tanah
+                p3.Add( new Parameter
+                {
+                    //3 parameter unique optimal low ~ high ph basa 
+                    Id = 7,
+                    Description="Kering",
+                    MinValue=0,
+                    MaxValue=7,
+                    Color="0.5",
+                });
+                p3.Add(new Parameter
+                {
+                    Id = 8,
+                    Description ="Optimal",
+                    MinValue = 13,
+                    MaxValue = 14,
+                    Color = "0.5",
+                });
+                p3.Add(new Parameter
+                {
+                    Id = 9,
+                    Description ="Basah",
+                    MinValue = 13,
+                    MaxValue = 14,
+                    Color = "0.5",
+                });
+                var p4 = new List<Parameter>();//suhu udara
+                p4.Add( new Parameter
+                {
+                    //3 parameter unique optimal low ~ high ph basa 
+                    Id = 10,
+                    Description="Dingin",
+                    MinValue=0,
+                    MaxValue=7,
+                    Color="0.5",
+                });
+                p4.Add(new Parameter
+                {
+                    Id = 11,
+                    Description ="Optimal",
+                    MinValue = 13,
+                    MaxValue = 14,
+                    Color = "0.5",
+                });
+                p4.Add(new Parameter
+                {
+                    Id = 12,
+                    Description ="Panas",
+                    MinValue = 13,
+                    MaxValue = 14,
+                    Color = "0.5",
+                });
+                var p5 = new List<Parameter>();//kelembapan udara
+                p5.Add( new Parameter
+                {
+                    //3 parameter unique optimal low ~ high ph basa 
+                    Id = 13,
+                    Description="Kering",
+                    MinValue=0,
+                    MaxValue=7,
+                    Color="0.5",
+                });
+                p5.Add(new Parameter
+                {
+                    Id = 14,
+                    Description ="Optimal",
+                    MinValue = 13,
+                    MaxValue = 14,
+                    Color = "0.5",
+                });
+                p5.Add(new Parameter
+                {
+                    Id = 15,
+                    Description ="Basah",
                     MinValue = 13,
                     MaxValue = 14,
                     Color = "0.5",
@@ -132,8 +238,35 @@ namespace backend.Seeders
                     new ParentParameter
                     {
                         Id = 2,
-                        ParentTypesId = 2,
+                        ParentTypesId = 4,
                         Parameters = p2,
+                    }
+                );
+                var pn3 = new List <ParentParameter>();
+                pn3.Add(
+                    new ParentParameter
+                    {
+                        Id = 3,
+                        ParentTypesId = 2,
+                        Parameters = p3,
+                    }
+                );
+                var pn4 = new List <ParentParameter>();
+                pn4.Add(
+                    new ParentParameter
+                    {
+                        Id = 4,
+                        ParentTypesId = 5,
+                        Parameters = p4,
+                    }
+                );
+                var pn5 = new List <ParentParameter>();
+                pn5.Add(
+                    new ParentParameter
+                    {
+                        Id = 5,
+                        ParentTypesId = 3,
+                        Parameters = p5,
                     }
                 );
                 ctx.Plants.AddRange(
@@ -152,6 +285,30 @@ namespace backend.Seeders
                         LatinName ="Sorghum technicum",
                         Description ="is an annual herbaceous plant belonging to the family of grasses",
                         ParentParameters = pn2
+                    },
+                    new Plant
+                    {
+                        Id = 3,
+                        Name ="Sorghum bicolor",
+                        LatinName ="Sorghum technicum",
+                        Description ="is an annual herbaceous plant belonging to the family of grasses",
+                        ParentParameters = pn3
+                    },
+                    new Plant
+                    {
+                        Id = 4,
+                        Name ="Sorghum amplum",
+                        LatinName ="Sorghum technicum",
+                        Description ="is an annual herbaceous plant belonging to the family of grasses",
+                        ParentParameters = pn4
+                    },
+                    new Plant
+                    {
+                        Id = 5,
+                        Name ="Sorghum bulbosum",
+                        LatinName ="Sorghum technicum",
+                        Description ="is an annual herbaceous plant belonging to the family of grasses",
+                        ParentParameters = pn5
                     }
                 ); ; ;
                 await ctx.SaveChangesAsync();
@@ -215,6 +372,13 @@ namespace backend.Seeders
                         Description = "mini Pc",
                         Code="A012DF",
                         Secret="onetoomany",
+                    },
+                   new IdIoT {
+                        Id = 2,
+                        Name = "Rasberry PI 4 +",
+                        Description = "mini Pc",
+                        Code="A013DF",
+                        Secret="onetoomany",
                     }
                 ); ; ;
                 await ctx.SaveChangesAsync();
@@ -240,10 +404,10 @@ namespace backend.Seeders
                         Id = 2,
                         Name="Rasberry PI 3 +",
                         Description="Mini Pc Region",
-                        RegionId=1,
-                        Code="A012DF",
+                        RegionId=2,
+                        Code="A013DF",
                         Secret="onetoomany",
-                        IdentityId =1
+                        IdentityId =2
                     }
                 ); ; ;
                 await ctx.SaveChangesAsync();
@@ -261,6 +425,13 @@ namespace backend.Seeders
                             Name="ESP 1",
                             Description="Microkontroller",
                             MiniPcId = 1
+                    },
+                    new Mikrokontroller
+                    {
+                            Id = 2,
+                            Name="ESP 2",
+                            Description="Microkontroller",
+                            MiniPcId = 2
                     }
                 ); ; ;
                 await ctx.SaveChangesAsync();
@@ -279,7 +450,7 @@ namespace backend.Seeders
                         Description="Suhu Udara",
                         ParentTypeId=5,//cocokin parentype static dengan sensor
                         MikrocontrollerId =1,
-                        ParameterId=1
+                        ParentParamId=5
                     },
                     new Sensor
                     {
@@ -287,8 +458,8 @@ namespace backend.Seeders
                         Name="DHT22",
                         Description="Kelembapan Udara",
                         ParentTypeId=3,//cocokin parentype static dengan sensor
-                        MikrocontrollerId =1,
-                        ParameterId=2
+                        MikrocontrollerId=1,
+                        ParentParamId=3
                     },
                     new Sensor
                     {
@@ -297,7 +468,7 @@ namespace backend.Seeders
                         Description="Suhu Tanah",
                         ParentTypeId=4,//cocokin parentype static dengan sensor
                         MikrocontrollerId =1,
-                        ParameterId=1
+                        ParentParamId=4
                     },
                     new Sensor
                     {
@@ -306,7 +477,7 @@ namespace backend.Seeders
                         Description="Sensor Ph Tanah",
                         ParentTypeId=1,//cocokin parentype static dengan sensor
                         MikrocontrollerId =1,
-                        ParameterId=1
+                        ParentParamId=1
                     },
                     new Sensor
                     {
@@ -315,7 +486,72 @@ namespace backend.Seeders
                         Description="Sensor Kelembapan Tanah",
                         ParentTypeId=2,//cocokin parentype static dengan sensor
                         MikrocontrollerId =1,
-                        ParameterId=1
+                        ParentParamId=2
+                    }
+                    //namasensor [DHT22(2x Suhu Udara Sama Kelembapan Udaraa),DS18B20(suhu tanah),PHTanahSensor,KelembapanTanah]
+                ); ; ;
+                await ctx.SaveChangesAsync();
+            }
+        }
+        public static async Task SeedDataAsync(AppDbContext ctx)
+        {
+            Random gen = new Random();
+            List<Data> temp = new List<Data>();
+            DateTime start = new DateTime(2022, 1, 1);
+            int range = (DateTime.Today - start).Days;
+            var randomTest = new Random();
+            if (!(ctx.Datas.ToList().Count()>0)){
+                for(int i = 1; i< 100; i++){
+                    TimeSpan timeSpan = DateTime.Today - start;
+                    TimeSpan newSpan = new TimeSpan(0, randomTest.Next(0, (int)timeSpan.TotalMinutes), 0);
+                    DateTime newDate = start + newSpan;
+                    ctx.Datas.AddRange(
+                    new Data{
+                        SensorId = 1,
+                        ParentParamId = 1,
+                        ValueParameter = gen.Next(5, 10),
+                        CreatedAt = newDate
+                    },
+                    new Data{
+                        SensorId = 2,
+                        ParentParamId = 1,
+                        ValueParameter = gen.Next(5, 10),
+                        CreatedAt = newDate
+                    },
+                    new Data{
+                        SensorId = 3,
+                        ParentParamId = 1,
+                        ValueParameter = gen.Next(5, 10),
+                        CreatedAt = newDate
+                    },
+                    new Data{
+                        SensorId = 4,
+                        ParentParamId = 1,
+                        ValueParameter = gen.Next(5, 10),
+                        CreatedAt = newDate
+                    },
+                    new Data{
+                        SensorId = 5,
+                        ParentParamId = 1,
+                        ValueParameter = gen.Next(5, 10),
+                        CreatedAt = newDate
+                    });
+                    await ctx.SaveChangesAsync();
+                } 
+            }
+        }
+    public static async Task SeedActuatorAsync(AppDbContext ctx)
+        {
+        if (!(ctx.Actuators.ToList().Count()>0))
+            {
+
+                ctx.Actuators.AddRange(
+                    new Actuator
+                    {
+                        Id = 1,
+                        Name="DHT22",
+                        Description="Suhu Udara",
+                        MikrocontrollerId =1,
                     }
                     //namasensor [DHT22(2x Suhu Udara Sama Kelembapan Udaraa),DS18B20(suhu tanah),PHTanahSensor,KelembapanTanah]
                 ); ; ;

@@ -34,23 +34,26 @@ namespace backend.Controllers
                 var temp = this.context.Sensors
                             .Include(x => x.MikroController).ThenInclude(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x => x.Plant).ThenInclude(x => x.ParentParameters).ThenInclude(x => x.Parameters)
                             .Where(x => x.Id == model.sensor.ElementAt(i).id)
-                            .Select(x => x.MikroController.MiniPc.Region.Plant.Id).ToList();
+                            //.Select(x => x.MikroController.MiniPc.Region.Plant.Id)
+                            .FirstOrDefault();
 
-
-                var temp2 = this.context.ParentParameters
-                            .Include(x => x.Plant)
-                            .Include(x => x.ParentTypes)
-                            .Where(x => temp.Contains(x.Plant.Id) && x.ParentTypes.Id == model.sensor.ElementAt(i).parenttypeId)
-                            // .Where(x => temp.Contains(x.Plant.Id))
-                            .Select(x => x.Id).FirstOrDefault();
+                // foreach(var obj in temp){
+                //     Console.Write(obj+" -> ");
+                // }
+                // var temp2 = this.context.ParentParameters
+                //             .Include(x => x.Plant)
+                //             .Include(x => x.ParentTypes)
+                //             .Where(x => temp.Contains(x.Plant.Id))
+                //             .Where(x => x.ParentTypes.Id == model.sensor.ElementAt(i).parenttypeId)
+                //             .Select(x => x.Id).FirstOrDefault();
                 
-                Console.WriteLine(temp2);
+                // Console.WriteLine(temp2);
                 this.context.Add(new Data
                 {
                     CreatedAt = DateTime.Now,
                     SensorId = model.sensor.ElementAt(i).id,
                     ValueParameter = model.sensor.ElementAt(i).value,
-                    ParentParamId = temp2,
+                    ParentParamId = temp.ParentParamId,
                 });
                 await this.context.SaveChangesAsync();
             }

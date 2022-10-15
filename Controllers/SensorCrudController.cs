@@ -94,7 +94,7 @@ namespace backend.Controllers
                 Description = model.Description,
                 MikrocontrollerId = model.MicroId,
                 ParentTypeId = model.ParentTypeId,
-                ParameterId = model.ParameterId
+                ParentParamId = model.ParameterId
             });
             return await this.context.SaveChangesAsync();
         }

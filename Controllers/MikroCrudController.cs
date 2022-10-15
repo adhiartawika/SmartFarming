@@ -177,18 +177,24 @@ namespace backend.Controllers
             this.context.Mikrokontrollers.Remove(result!);
             await this.context.SaveChangesAsync();
         }
-        [HttpGet]
-        public IEnumerable<MikroNameDto>GetMikroName(){
-            // return (await this.context.get)
-            List<MikroNameDto> types = new List<MikroNameDto>();
-            foreach(var j in this.context.Mikrokontrollers){
-                MikroNameDto temp = new MikroNameDto{
-                    Id = j.Id,
-                    Name = j.Name,
-                };
-                types.Add(temp);
-            }
-            return types;
+        [HttpGet("{RegionId}")]
+        public async Task<IEnumerable<MikroNameDto>> GetMikroName(int RegionId){
+            // var obj = this.context.MiniPcs.Include(x => x.Region)
+            // .Select( x => x.Id).ToList();
+            // var obj_mikro = this.context.Mikrokontrollers.Include(x => x.MiniPc).Where(x => obj.Contains(x.MiniPcId))
+            // .Select(x => new MikroNameDto{
+            //     Id = x.Id,
+            //     Name = x.Name
+            // }).ToList();
+            return (await this.context.Mikrokontrollers
+            .Include(x=> x.MiniPc).ThenInclude(x => x.Region)
+            .Where(x=>x.MiniPc.RegionId == RegionId)
+            .Where(x=>x.Sensor.Count() > 0)
+            .ToListAsync()).Select(y => new MikroNameDto{
+                Id = y.Id,
+                Name = y.Name,
+            }).ToList();
+            // return obj_mikro;
         }
     [HttpGet("{RegionId}")]
     public async Task<IEnumerable<GraphDataParameterDto>> ShowSensorParameterWithRegion(int RegionId, [FromQuery]SensorParamRegionOverv model){
@@ -214,11 +220,11 @@ namespace backend.Controllers
         // )
         // .ToList(); 
         var datas = this.context.Sensors
-        .Include(y => y.Datas.Where(x => x.CreatedAt.Year == model.ParamDates.Year && 
-        (model.ParamDates.Month == x.CreatedAt.Month) && (model.ParamDates.Day == x.CreatedAt.Day)))
+        .Include(y => y.Datas.Where(x => x.CreatedAt.Year == model.ParamDate.Year && 
+        (model.ParamDate.Month == x.CreatedAt.Month) && (model.ParamDate.Day == x.CreatedAt.Day)))
         .Include(x => x.MikroController).ThenInclude(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x => x.Plant)
         .Where(x => model.MicroIds.Contains(x.MikroController.Id))
-        .Where(x => model.ParentTypesIds.Contains(x.ParentTypeId))
+        .Where(x => model.ParentTypeIds.Contains(x.ParentTypeId))
         .Select(x => new GraphDataParameterDto{
             MicroId = x.MikroController.Id,
                 MicroName = x.MikroController.Name,
@@ -267,7 +273,7 @@ namespace backend.Controllers
         // Include(x => x.d).GroupBy(
         // p => p.Id, 
         // p => p.data,
-        // (key, g) => new { PersonId = key, Cars = g.ToList() });
+        // // (key, g) => new { PersonId = key, Cars = g.ToList() });
         return datas;
     }
     }
@@ -323,8 +329,8 @@ namespace backend.Controllers
     }
     public class SensorParamRegionOverv{
         public List<int>? MicroIds {get;set;}
-        public List<int>? ParentTypesIds {get;set;}
-        public DateTime ParamDates {get;set;}
+        public List<int>? ParentTypeIds {get;set;}
+        public DateTime ParamDate {get;set;}
     }
     public class GraphDataDto {
         public decimal Value {get;set;}

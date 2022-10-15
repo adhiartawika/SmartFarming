@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace backend.Migrations
 {
-    public partial class inifirst : Migration
+    public partial class ef1 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -454,7 +454,7 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     MikrocontrollerId = table.Column<int>(type: "int", nullable: true),
                     ParentTypeId = table.Column<int>(type: "int", nullable: false),
-                    ParameterId = table.Column<int>(type: "int", nullable: false),
+                    ParentParamId = table.Column<int>(type: "int", nullable: false),
                     CreatedBy = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
@@ -471,9 +471,9 @@ namespace backend.Migrations
                         principalTable: "Mikrokontrollers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Sensors_Parameters_ParameterId",
-                        column: x => x.ParameterId,
-                        principalTable: "Parameters",
+                        name: "FK_Sensors_ParentParameters_ParentParamId",
+                        column: x => x.ParentParamId,
+                        principalTable: "ParentParameters",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -519,7 +519,7 @@ namespace backend.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     SensorId = table.Column<int>(type: "int", nullable: false),
-                    ParameterId = table.Column<int>(type: "int", nullable: false),
+                    ParentParamId = table.Column<int>(type: "int", nullable: false),
                     ValueParameter = table.Column<decimal>(type: "decimal(7,3)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -527,9 +527,9 @@ namespace backend.Migrations
                 {
                     table.PrimaryKey("PK_Datas", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Datas_Parameters_ParameterId",
-                        column: x => x.ParameterId,
-                        principalTable: "Parameters",
+                        name: "FK_Datas_ParentParameters_ParentParamId",
+                        column: x => x.ParentParamId,
+                        principalTable: "ParentParameters",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -557,9 +557,9 @@ namespace backend.Migrations
                 column: "ActuatorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Datas_ParameterId",
+                name: "IX_Datas_ParentParamId",
                 table: "Datas",
-                column: "ParameterId");
+                column: "ParentParamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Datas_SensorId",
@@ -627,9 +627,9 @@ namespace backend.Migrations
                 column: "MikrocontrollerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Sensors_ParameterId",
+                name: "IX_Sensors_ParentParamId",
                 table: "Sensors",
-                column: "ParameterId");
+                column: "ParentParamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Sensors_ParentTypeId",
@@ -654,6 +654,9 @@ namespace backend.Migrations
                 name: "IotStatus");
 
             migrationBuilder.DropTable(
+                name: "Parameters");
+
+            migrationBuilder.DropTable(
                 name: "UserDevices");
 
             migrationBuilder.DropTable(
@@ -672,22 +675,19 @@ namespace backend.Migrations
                 name: "Mikrokontrollers");
 
             migrationBuilder.DropTable(
-                name: "Parameters");
+                name: "ParentParameters");
 
             migrationBuilder.DropTable(
                 name: "MiniPcs");
 
             migrationBuilder.DropTable(
-                name: "ParentParameters");
+                name: "ParentTypes");
 
             migrationBuilder.DropTable(
                 name: "IdentityIoTs");
 
             migrationBuilder.DropTable(
                 name: "Regions");
-
-            migrationBuilder.DropTable(
-                name: "ParentTypes");
 
             migrationBuilder.DropTable(
                 name: "Lands");
