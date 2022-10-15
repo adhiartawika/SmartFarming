@@ -12,7 +12,8 @@ namespace backend.Commons
 {
     public interface ICurrentUserService
     {
-        int? UserId { get; }
+        int? UserId { get; } 
+        //roler int
     }
     public class CurrentUserService : ICurrentUserService
     {

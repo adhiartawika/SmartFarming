@@ -20,7 +20,7 @@ namespace backend.Model.AppEntity
         // public virtual Region Region { get; set; }
         // public int? IotId { get; set; }
         public int MiniPcId {get;set;}
-        public virtual MiniPc MiniPcs {get;set;}
+        public virtual MiniPc MiniPc {get;set;}
         public virtual ICollection<Sensor> Sensor{get; set;}
         public virtual ICollection<IotStatus> IotStatus { get; set; }
     }

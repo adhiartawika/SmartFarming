@@ -14,8 +14,8 @@ namespace backend.Model.AppEntity
         public int Id {get;set;}
         public int PlantId{get;set;}
         public virtual Plant Plant{get;set;}
-        public int ParentTypeId {get;set;}
-        public virtual ParentType ParentType {get;set;}
+        public int ParentTypesId {get;set;}
+        public virtual ParentType ParentTypes {get;set;}
         public virtual ICollection<Parameter> Parameters {get;set;}
     }  
 }

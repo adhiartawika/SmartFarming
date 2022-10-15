@@ -4,7 +4,7 @@
 
 namespace backend.Migrations
 {
-    public partial class update01 : Migration
+    public partial class inifis : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

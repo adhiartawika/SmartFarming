@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
+using backend.Seeders;
 using backend;
 using System;
 using System.Collections.Generic;
@@ -27,13 +28,14 @@ using backend.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 IConfiguration configuration = builder.Configuration;
+
 var settings = builder.Configuration.GetConnectionString("MySqlConnectionApp");
 var mailKitOptions = builder.Configuration.GetSection("EmailSettings").Get<MailKitOptions>();
 // Add services to the container.
 builder.Services.AddSignalR();
 builder.Services.AddCors(x=>x.AddDefaultPolicy(y=>{
     y.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
-    y.AllowCredentials().WithOrigins("http://localhost:4200");
+    y.AllowCredentials().WithOrigins("http://0.0.0.0:4200");
 }));
 builder.Services.AddControllersWithViews().AddJsonOptions(jsonOptions =>
                 {
@@ -48,6 +50,8 @@ builder.Services.AddScoped<ICurrentIoTService, CurrentIoTService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseMySql(settings, new MySqlServerVersion(new Version(10, 1, 40))));
+
+builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 builder.Services.AddTransient<INotificationService,NotificationService>();
 builder.Services.AddMailKit(config => config.UseMailKit(mailKitOptions));
@@ -115,10 +119,24 @@ builder.Services.AddSingleton<IMailTemplateHelperService, MailTemplateHelperServ
 
 builder.Services.AddRazorPages();
 var app = builder.Build();
-
+        // .UseUrls("http://0.0.0.0:5000/")
+        // .UseKestrel()
+        // .Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+
+    // Initialise and seed database
+    using (var scope = app.Services.CreateScope())
+    {
+        var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
+        await initialiser.InitialiseAsync();
+        await initialiser.SeedAsync();
+    }
+}
+else
 {
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
@@ -144,5 +162,6 @@ app.UseEndpoints(endpoints =>
 
 
 app.MapFallbackToFile("index.html");;
-
+var t= DateTime.Now;
+Console.WriteLine(t.ToString());
 app.Run();

@@ -28,7 +28,7 @@ namespace backend.Controllers
         {
             return (await _context.Plants.Where(x=>x.DeletedAt==null).OrderBy(x=>x.Name)
                 .Include(x=>x.ParentParameters).ThenInclude(x=>x.Parameters)
-                .Include(x=>x.ParentParameters).ThenInclude(x=>x.ParentType).ToListAsync()).Select(x => {
+                .Include(x=>x.ParentParameters).ThenInclude(x=>x.ParentTypes).ToListAsync()).Select(x => {
                 List<ParameterReadPlantDto> Parameters = x.ParentParameters.Where(x=>x.DeletedAt==null).Select(z=> new ParameterReadPlantDto{
                    ParentTypeId =z.Id,
                     Descriptions=z.Parameters.OrderBy(u=>u.MinValue).Select(c=> new DescriptionReadParameterPlantDto{
@@ -56,11 +56,11 @@ namespace backend.Controllers
             var q = this._context.Plants
                 .Where(x=>x.DeletedAt==null)
                 .Include(x=>x.ParentParameters).ThenInclude(x=>x.Parameters)
-                .Include(x=>x.ParentParameters).ThenInclude(x=>x.ParentType)
+                .Include(x=>x.ParentParameters).ThenInclude(x=>x.ParentTypes)
                 .Where(x => x.Name.ToLower().Contains(query.Search) || x.LatinName.ToLower().Contains(query.Search));
             var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync()).Select(x => {
                 List<ParameterReadPlantDto> Parameters = x.ParentParameters.Where(x=>x.DeletedAt==null).Select(z=> new ParameterReadPlantDto{
-                   ParentTypeId =z.ParentTypeId,
+                   ParentTypeId =z.ParentTypesId,
                     Descriptions=z.Parameters.OrderBy(u=>u.MinValue).Select(c=> new DescriptionReadParameterPlantDto{
                         Color=c.Color,
                         Description=c.Description,
@@ -120,10 +120,9 @@ namespace backend.Controllers
                     });
                 }
                 ParentParameter ff = new ParentParameter{
-                    ParentTypeId=model.Parameters.ElementAt(i).ParentTypeId,
+                    ParentTypesId=model.Parameters.ElementAt(i).ParentTypeId,
                     Parameters=parameters
                 };
-                Console.WriteLine(ff);
                 parentsparam.Add(ff);
                 
             }

@@ -41,23 +41,23 @@ namespace backend.Controllers
             // }  
             return types;
         }
-        [HttpGet]
-        public async Task<IEnumerable<ActuatorItemDto>> ShowActuator(){
-            return (await this.context.Actuators.Include(x => x.ActuatorType)
-            .Include(x => x.Status)
-            .Include(x => x.MikroController).ToListAsync()).Select(y => new ActuatorItemDto{
-                Id = y.Id,
-                Name = y.Name,
-                Description = y.Description,
-                MicroId = y.MikroController.Id,
-                MicroName = y.MikroController.Name,
-                TypeId = y.ActuatorTypeId,
-                TypeName = y.ActuatorType.Name,
-                StatusActuator = y.Status.Select( x => new StatusActuatorDto{
-                    Status = x.Status
-                }).ToList()
-            });
-        }
+        // [HttpGet]
+        // public async Task<IEnumerable<ActuatorItemDto>> ShowActuator(){
+        //     return (await this.context.Actuators.Include(x => x.ActuatorType)
+        //     .Include(x => x.Status)
+        //     .Include(x => x.MikroController).ToListAsync()).Select(y => new ActuatorItemDto{
+        //         Id = y.Id,
+        //         Name = y.Name,
+        //         Description = y.Description,
+        //         MicroId = y.MikroController.Id,
+        //         MicroName = y.MikroController.Name,
+        //         TypeId = y.ActuatorTypeId,
+        //         TypeName = y.ActuatorType.Name,
+        //         StatusActuator = y.Status.Select( x => new StatusActuatorDto{
+        //             Status = x.Status
+        //         }).ToList()
+        //     });
+        // }
 
         [HttpPost]
         public async Task<int> AddActuator([FromBody] AddActuatorDto model){
@@ -83,8 +83,9 @@ namespace backend.Controllers
         {
             query.Search = query.Search == null ? "" : query.Search.ToLower();
             var q = this.context.Actuators.Where(x=>x.DeletedAt==null)
-            .Include(x=> x.ActuatorType).Include(x => x.MikroController).ThenInclude(x => x.MiniPcs).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
-            .Where(x=>LandId==-1? true: x.MikroController.MiniPcs.Region.LandId==LandId)
+            .Include(x => x.Status)
+            .Include(x=> x.ActuatorType).Include(x => x.MikroController).ThenInclude(x => x.MiniPc).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
+            .Where(x=>LandId==-1? true: x.MikroController.MiniPc.Region.LandId==LandId)
             .Where(x => x.Name.ToLower().Contains(query.Search));
             var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync()).Select(x =>
             {
@@ -93,14 +94,15 @@ namespace backend.Controllers
                     Id = x.Id,
                     Name = x.Name,
                     Description=x.Description,
-                    LandId=x.MikroController.MiniPcs.Region.LandId,
-                    LandName=x.MikroController.MiniPcs.Region.Land.Name,
+                    LandId=x.MikroController.MiniPc.Region.LandId,
+                    LandName=x.MikroController.MiniPc.Region.Land.Name,
                     TypeId = x.ActuatorTypeId,
                     TypeName = x.ActuatorType.Name,
                     MicroId=x.MikroController.Id,
                     MicroName=x.MikroController.Name,
-                    RegionId=x.MikroController.MiniPcs.RegionId,
-                    RegionName=x.MikroController.MiniPcs.Region.Name
+                    RegionId=x.MikroController.MiniPc.RegionId,
+                    RegionName=x.MikroController.MiniPc.Region.Name,
+                    StatusActuator=x.Status.Select(x => x.Status).First()
                 };
             }).ToList();
             return new ActuatorSearchRespsonse
@@ -144,8 +146,7 @@ namespace backend.Controllers
         public string RegionName {get; set;}
         public int LandId {get;set;}
         public string LandName {get; set;}
-
-        public virtual ICollection<StatusActuatorDto> StatusActuator {get;set;}
+        public bool StatusActuator {get;set;}
     }
 
     public class StatusActuatorDto{

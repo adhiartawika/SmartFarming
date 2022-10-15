@@ -20,10 +20,9 @@ namespace backend.Controllers
         // public async Task<IEnumerable<DataItemDto>> ShowData(){
         //     return (await this.context.Datas.ToListAsync()).Select(y => new DataItemDto{
         //         Id = y.Id,
-        //         ParameterId = y.Parameter.Id,
-        //         GroupName = y.Parameter.GroupName,
-        //         MinValue = y.Parameter.MinValue,
-        //         MaxValue = y.Parameter.MaxValue,
+        //         ParameterId = y.ParentParam.Id,
+        //         MinValue = y.ParentParam.MinValue,
+        //         MaxValue = y..MaxValue,
         //         ValueParameter = y.ValueParameter
         //     });
         // }
@@ -33,20 +32,25 @@ namespace backend.Controllers
             for (int i = 0; i < model.sensor.Count(); i++)
             {
                 var temp = this.context.Sensors
-                            .Include(x => x.MikroController).ThenInclude(x => x.MiniPcs).ThenInclude(x => x.Region).ThenInclude(x => x.Plant).ThenInclude(x => x.ParentParameters)
+                            .Include(x => x.MikroController).ThenInclude(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x => x.Plant).ThenInclude(x => x.ParentParameters).ThenInclude(x => x.Parameters)
                             .Where(x => x.Id == model.sensor.ElementAt(i).id)
-                            .Select(x => x.MikroController.MiniPcs.Region.PlantId).ToList();
+                            .Select(x => x.MikroController.MiniPc.Region.Plant.Id).ToList();
+
 
                 var temp2 = this.context.ParentParameters
-                            .Include(x => x.PlantId)
-                            .Where(x => temp.Contains(x.PlantId) && x.ParentType.Name == model.sensor.ElementAt(i).name)
+                            .Include(x => x.Plant)
+                            .Include(x => x.ParentTypes)
+                            .Where(x => temp.Contains(x.Plant.Id) && x.ParentTypes.Id == model.sensor.ElementAt(i).parenttypeId)
+                            // .Where(x => temp.Contains(x.Plant.Id))
                             .Select(x => x.Id).FirstOrDefault();
+                
+                Console.WriteLine(temp2);
                 this.context.Add(new Data
                 {
                     CreatedAt = DateTime.Now,
                     SensorId = model.sensor.ElementAt(i).id,
                     ValueParameter = model.sensor.ElementAt(i).value,
-                    ParameterId = temp2,
+                    ParentParamId = temp2,
                 });
                 await this.context.SaveChangesAsync();
             }
@@ -57,7 +61,7 @@ namespace backend.Controllers
         public async Task UpdateData(int dataId, [FromBody] UpdateDataDto model)
         {
             var result = await this.context.Datas.FindAsync(dataId);
-            result.ParameterId = model.ParameterId;
+            result.ParentParamId = model.ParameterId;
             result.ValueParameter = model.ValueParameter;
             await this.context.SaveChangesAsync();
         }
@@ -101,7 +105,7 @@ namespace backend.Controllers
     {
         public int id { get; set; }
         public decimal value { get; set; }
-        public string name { get; set; }
+        public int parenttypeId { get; set; }
     }
     public class UpdateDataDto
     {

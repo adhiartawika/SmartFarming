@@ -24,7 +24,8 @@ namespace backend.Model.AppEntity
         public virtual Region Region { get; set; }
         public string Secret {get;set;}
         public string Code {get; set;}
-        public virtual ICollection<IdIoT> IdIoTs {get;set;}
+        public int IdentityId {get; set;}
+        public virtual IdIoT Identity {get;set;}
         public virtual ICollection<Mikrokontroller> Mikrokontrollers{get; set;}
         public virtual ICollection<IotStatus> IotStatus { get; set; }
     }

@@ -11,7 +11,7 @@
     "backend": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:7219;http://localhost:5002",
+      "applicationUrl": "https://0.0.0.0:7219;http://0.0.0.0:5002",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"

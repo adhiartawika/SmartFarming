@@ -69,24 +69,23 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<int> AddMini([FromBody] CreateMiniDto model)
         {
-            List<IdIoT> idIoTs = new List<IdIoT>();
-            for (int i = 0; i < model.IdentityIot.Count(); i++)
-            {
-                idIoTs.Add(new IdIoT
-                {
-                    Name = model.IdentityIot.ElementAt(i).Name,
-                    Code = model.IdentityIot.ElementAt(i).Code,
-                    Secret = model.IdentityIot.ElementAt(i).Secret //membuat kondisi untuk mengecek kode apa bila sudah ada berikan exception
+            // reg.RegionPlant.Add(new RegionPlant{PlantId=model.PlantId});  
+            var obj_iot = await this.context.IdentityIoTs.AddAsync(new IdIoT 
+                { 
+                    Name = model.Name,
+                    Code = model.Code,
+                    Secret = model.Secret,
                 });
-            }
+            await this.context.SaveChangesAsync();
+             
             var obj_baru = await this.context.MiniPcs.AddAsync(new MiniPc 
             { 
                 Name = model.Name, 
                 Description = model.Description, 
                 RegionId = model.RegionId,
-                Code = idIoTs.Select(c => c.Code).ToList().First(),
-                Secret = idIoTs.Select(c => c.Secret).ToList().First(),
-                IdIoTs =idIoTs
+                IdentityId = obj_iot.Entity.Id,
+                Code = model.Code,
+                Secret = model.Secret
             });
             await this.context.SaveChangesAsync();
             return obj_baru.Entity.Id;
@@ -106,10 +105,65 @@ namespace backend.Controllers
             this.context.Mikrokontrollers.Remove(result!);
             await this.context.SaveChangesAsync();
         }
+        [HttpGet("{LandId:int?}")]
+        public async Task<MiniPcSearchResponse> Search([FromQuery] SearchRequest query, int LandId = -1)
+        {
+            query.Search = query.Search == null ? "" : query.Search.ToLower();
+            var q = this.context.MiniPcs
+            .Include(x => x.Mikrokontrollers)
+            .Include(x => x.Region).ThenInclude(x=>x.Land)
+            // .Include(x => x.MiniPcs).ThenInclude(x=>x.Region).ThenInclude(x => x.Land)
+            // .Include(x => x.Region).ThenInclude(x=>x.RegionPlant).ThenInclude(x=>x.Plant)
+            .Include(x => x.Region).ThenInclude(x=>x.Plant)
+            .Include(x=>x.IotStatus)
+            .Where(x=>LandId==-1? true: x.Region.LandId==LandId)
+            .Select(x=> new MiniPc{
+                CreatedAt=x.CreatedAt,
+                CreatedBy=x.CreatedBy,
+                DeletedAt=x.DeletedAt,
+                DeletedBy=x.DeletedBy,
+                Description=x.Description,
+                Id=x.Id,
+                Code = x.Code,
+                Secret = x.Secret,
+                // IotId=x.MiniPcs.IotId,
+                IotStatus= x.IotStatus != null &&  x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!=null?new List<IotStatus>(){x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!}:new List<IotStatus>(),
+                LastModifiedAt=x.LastModifiedAt,
+                LastModifiedBy=x.LastModifiedBy,
+                Name=x.Name,
+                Region=x.Region,
+                RegionId=x.RegionId
+            })
+            .Where(x => x.Name.ToLower().Contains(query.Search));
+            
+            var res = (await q.Skip(((query.Page - 1) < 0 ? 0 : query.Page - 1) * query.N).Take(query.N).OrderBy(x=>x.Name).ToListAsync()).Select(x =>
+            {
+                return new MiniPcItemDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description=x.Description,
+                    RegionId=x.RegionId,
+                    RegionName=x.Region.Name,
+                    Code = x.Code,
+                    Secret = x.Secret,
+                    MikroCount = x.Mikrokontrollers.Count(),
+
+                    // RegionName=x.Region.RegionPlant !=null && x.Region.RegionPlant.Count()>0? x.Region.RegionPlant.OrderBy(x=>x.CreatedAt).LastOrDefault()!.Plant.Name  :"-",//x.Region.Name,
+                    Status= x.IotStatus == null || x.IotStatus.Count()==0 ? false : x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!.IsActive
+                };
+            }).ToList();
+            return new MiniPcSearchResponse
+            {
+                Data = res,
+                NTotal = q.Count()
+            };
+        }
     }
     public class MiniPcIdIotDto
     {
 
+        public int IdIot {get;set;}
         public string Name { get; set; }
         public string Code { get; set; }
         public string Secret { get; set; }
@@ -123,10 +177,10 @@ namespace backend.Controllers
     {
         public string Name { get; set; }
         public string Description { get; set; }
-
         public int RegionId {get;set;}
         public int IotId {get;set;}
-        public List<MiniPcIdIotDto> IdentityIot { get; set; }
+        public string Code { get; set; }
+        public string Secret { get; set; }
 
     }
     public class MicroControllerItemDto{
@@ -142,6 +196,8 @@ namespace backend.Controllers
         public int RegionId {get; set;}
         public string RegionName {get; set;}
 
+        public int MikroCount {get;set;}
+        public bool Status {get;set;}
         public List<MicroControllerItemDto> MicroItemDto {get;set;}
 
     }
@@ -170,5 +226,8 @@ namespace backend.Controllers
         public int PlantId {get;set;}
         public string PlantName {get;set;}
     }
+    public class MiniPcSearchResponse : SearchResponse<MiniPcItemDto>
+    {
 
+    }
 }

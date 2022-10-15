@@ -228,7 +228,7 @@ namespace backend.Controllers
                         new Claim(JwtRegisteredClaimNames.Sub,user.Id.ToString()),
                         new Claim(JwtRegisteredClaimNames.Email, user.Email),
                         new Claim(JwtRegisteredClaimNames.GivenName, user.Name),
-
+                        //tambah role
                     };
                     var secret = _config["JwtSettings:SymKey"];
                     var secretByte = Encoding.UTF8.GetBytes(secret);

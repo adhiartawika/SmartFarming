@@ -28,78 +28,79 @@ namespace backend.Controllers
         public async Task<IEnumerable<int>> ShowMinimalParam(int LandId){
             var temp = this._context.Regions.Include(x=>x.Plant).Where(x=>x.LandId==LandId).Select(x=>x.PlantId).ToList();
             return (await this._context.Parameters
-            .Include(x =>x.ParentParameters).ThenInclude(x=>x.Plant).ThenInclude(x=>x.Regions)
+            .Include(x =>x.ParentParam).ThenInclude(x=>x.Plant).ThenInclude(x=>x.Regions)
             // .ThenInclude(x=>x.RegionPlants).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
             // .Where(x=>x.Plant.RegionPlants.Any(y=>y.Region.LandId ==LandId))
-            .Where(x=>temp.Contains(x.ParentParameters.PlantId))
-            .ToListAsync()).Select(y => y.ParentParameters.ParentTypeId)
+            .Where(x=>temp.Contains(x.ParentParam.PlantId))
+            .ToListAsync()).Select(y => y.ParentParam.ParentTypesId)
             .Distinct()
             .ToList(); //mengirim id 
         }
-        // [HttpGet("{LandId}")]
-        // public async Task<IEnumerable<ParamOverview>> ShowParamOverview(int LandId, [FromQuery]ParamOverv query){
-        //     var listplantid = this._context.Regions.Include(x=>x.Plant).Where(x=>x.LandId==LandId).Select(x=>x.PlantId).ToList();
-        //     var parametersnameofplant= (await this._context.Parameters
-        //     .Include(x =>x.Plant).ThenInclude(x=>x.Regions)
-        //     // .ThenInclude(x=>x.RegionPlants).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
-        //     // .Where(x=>x.Plant.RegionPlants.Any(y=>y.Region.LandId ==LandId))
-        //     .Where(x=>listplantid.Contains(x.PlantId))
-        //     .ToListAsync()).Select(y =>y.ParentParameters.ParentType.Name.Trim())
-        //     .ToList();
-        //     var datas = this._context.Datas
-        //                     .Include(x=>x.Sensor).ThenInclude(x=>x.MikroController)
-        //                     .Include(x=>x.Parameter).ThenInclude(x=>x.Plant).ThenInclude(x=>x.ParentParameters).ThenInclude(y => y.Parameters)
-        //                     .Include(x=>x.Parameter).ThenInclude(x=>x.Plant).ThenInclude(x=>x.ParentParameters).ThenInclude(y => y.ParentType)
-        //                     .Where(x=>parametersnameofplant.Contains(x.Parameter.ParentParameters.ParentType.Name.Trim()))
-        //                     .Where(x=>query.Ids == null ? false : query.Ids.Contains(x.Sensor.MikroController.Id))
-        //                     .Where(x=>query.GNames==null? false: query.GNames.Contains(x.Parameter.ParentParameters.ParentType.Name.Trim()))
-        //                     .GroupBy(x=>x.ParameterId)
-        //                     .Select(g=>g.OrderBy(f=>f.CreatedAt).Last())
-        //                     .ToList();
-        //                     // .GroupBy(x=>x.ParameterId, (key,g)=>g.OrderBy(v=>v.CreatedAt).Last());
-        //                     // .Select(x=>new Data{
-        //                     //     CreatedAt=x.CreatedAt,
-        //                     //     Id=x.Id,
-        //                     //     Parameter=x.Parameter,
-        //                     //     ParameterId=x.ParameterId,
-        //                     //     Sensor=x.Sensor,
-        //                     //     SensorId=x.SensorId,
-        //                     //     ValueParameter=x.ValueParameter
-        //                     // })
-        //                     // .ToList();
-        //     var rescandidate = datas.Select(x=> new ParamOverview{
-        //                        GroupName=x.Parameter.ParentParameters.ParentType.Name,
-        //                        PlantName=x.Parameter.Plant.Name,
-        //                        PlantId=x.Parameter.PlantId,
-        //                        MicroId=x.Sensor.MikroController.Id,
-        //                        Value=x.ValueParameter,
-        //                        Descriptions=new List<DescriptionReadParameterPlantDto>()
-        //                     }).ToList();
+        [HttpGet("{LandId}")]
+        public async Task<IEnumerable<ParamOverview>> ShowParamOverview(int LandId, [FromQuery]ParamOverv query){
+            var listplantid = this._context.Regions.Include(x=>x.Plant).Where(x=>x.LandId==LandId).Select(x=>x.PlantId).ToList();
+            var parametersnameofplant= (await this._context.Parameters
+            .Include(x => x.ParentParam).ThenInclude(x =>x.Plant).ThenInclude(x=>x.Regions)
+            .Include(x => x.ParentParam).ThenInclude(x => x.ParentTypes)
+            // .ThenInclude(x=>x.RegionPlants).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
+            // .Where(x=>x.Plant.RegionPlants.Any(y=>y.Region.LandId ==LandId))
+            .Where(x=>listplantid.Contains(x.ParentParam.Plant.Id))
+            .ToListAsync()).Select(y =>y.ParentParam.ParentTypes.Name.Trim()).ToList();
+            var datas = this._context.Datas
+            // .ThenInclude(x=>x.ParentParameters).ThenInclude(y => y.Parameters)
+                            .Include(x=>x.Sensor).ThenInclude(x=>x.MikroController)
+                            .Include(x => x.ParentParam).ThenInclude(x=>x.Plant)
+                            .Include(x => x.ParentParam).ThenInclude(x=>x.Plant).ThenInclude(x=>x.ParentParameters).ThenInclude(y => y.ParentTypes)
+                            .Where(x=>parametersnameofplant.Contains(x.ParentParam.ParentTypes.Name.Trim()))
+                            .Where(x=>query.Ids == null ? false : query.Ids.Contains(x.Sensor.MikroController.Id))
+                            .Where(x=>query.GNames==null? false: query.GNames.Contains(x.ParentParam.ParentTypes.Name.Trim()))
+                            .GroupBy(x=>x.ParentParamId)
+                            .Select(g=>g.OrderBy(f=>f.CreatedAt).Last())
+                            .ToList();
+                            // .GroupBy(x=>x.ParameterId, (key,g)=>g.OrderBy(v=>v.CreatedAt).Last());
+                            // .Select(x=>new Data{
+                            //     CreatedAt=x.CreatedAt,
+                            //     Id=x.Id,
+                            //     Parameter=x.Parameter,
+                            //     ParameterId=x.ParameterId,
+                            //     Sensor=x.Sensor,
+                            //     SensorId=x.SensorId,
+                            //     ValueParameter=x.ValueParameter
+                            // })
+                            // .ToList();
+         var rescandidate = datas.Select(x=> new ParamOverview{
+                               GroupName=x.ParentParam.ParentTypesId,
+                               PlantName=x.ParentParam.Plant.Name,
+                               PlantId=x.ParentParam.PlantId,
+                               MicroId=x.Sensor.MikroController.Id,
+                               Value=x.ValueParameter,
+                               Descriptions=new List<DescriptionReadParameterPlantDto>()
+                            }).ToList();
             
-        //     for (int i = 0; i < rescandidate.Count(); i++)
-        //     {
-        //         var t = datas.Where(x=>
-        //                     x.Parameter.PlantId == rescandidate.ElementAt(i).PlantId && 
-        //                     rescandidate.ElementAt(i).MicroId == x.Sensor.MikrocontrollerId
-        //                 ).OrderBy(x=>x.CreatedAt).Select(x=>x.).LastOrDefault();
-        //         var k = new List<DescriptionReadParameterPlantDto>();
-        //         for (int j = 0; j < t?.Count(); j++)
-        //         {
-        //             var jj = t.ElementAt(j);
-        //              var ttt = new DescriptionReadParameterPlantDto{
-        //                 Color=jj.Color,
-        //                 Description=jj.Description,
-        //                 Id=jj.Id,
-        //                 MaxValue=jj.MaxValue,
-        //                 MinValue=jj.MinValue
-        //             };
-        //             if( rescandidate.ElementAt(i).GroupName == t.ElementAt(j).ParentParameters.GroupName){ //sensor.name bisa diganti type jika groupname juga dari type
-        //                 rescandidate.ElementAt(i).Descriptions.Add(ttt);
-        //             }
-        //         }
-        //     }
-        //     return rescandidate.Where(x=>x.Descriptions.Count()>0);
-        // }
+            for (int i = 0; i < rescandidate.Count(); i++)
+            {
+                var t = datas.Where(x=>
+                            x.ParentParam.PlantId == rescandidate.ElementAt(i).PlantId && 
+                            rescandidate.ElementAt(i).MicroId == x.Sensor.MikrocontrollerId
+                        ).OrderBy(x=>x.CreatedAt).Select(x=>x.ParentParam.Parameters).LastOrDefault();
+                var k = new List<DescriptionReadParameterPlantDto>();
+                for (int j = 0; j < t?.Count(); j++)
+                {
+                    var jj = t.ElementAt(j);
+                     var ttt = new DescriptionReadParameterPlantDto{
+                        Color=jj.Color,
+                        Description=jj.Description,
+                        Id=jj.Id,
+                        MaxValue=jj.MaxValue,
+                        MinValue=jj.MinValue
+                    };
+                    if( rescandidate.ElementAt(i).GroupName == t.ElementAt(j).ParentParam.ParentTypesId){ //sensor.name bisa diganti type jika groupname juga dari type
+                        rescandidate.ElementAt(i).Descriptions.Add(ttt);
+                    }
+                }
+            }
+            return rescandidate.Where(x=>x.Descriptions.Count()>0);
+        }
 
         [HttpPost]
         public async Task<CreateParentParamResponse> CreateParam([FromBody] CreateParameter model)
@@ -118,7 +119,7 @@ namespace backend.Controllers
                 });
             }
             ParentParameter p = new ParentParameter{
-                ParentTypeId=model.GroupName,
+                ParentTypesId=model.GroupName,
                 Parameters=objs
             };
 
@@ -154,8 +155,8 @@ namespace backend.Controllers
         public async Task UpdateParam(int Id , [FromBody] UpdateParameter model)
         {
             var result =  await _context.ParentParameters.Where(x=>Id==x.Id).FirstOrDefaultAsync();
-            Console.WriteLine(result.ParentTypeId);
-            result.ParentTypeId = model.ParentTypeId;
+            Console.WriteLine(result.ParentTypesId);
+            result.ParentTypesId = model.ParentTypeId;
             await _context.SaveChangesAsync();
         }
         [HttpPut("{id}")]
@@ -189,7 +190,7 @@ namespace backend.Controllers
     }
     public class ParamOverview: ParameterReadPlantDto{
 
-        public string GroupName {get;set;}
+        public int GroupName {get;set;}
         public int PlantId {get;set;}
         public string PlantName{get;set;}
         public int MicroId {get;set;}

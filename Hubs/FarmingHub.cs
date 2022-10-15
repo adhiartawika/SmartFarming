@@ -30,48 +30,48 @@ namespace backend.Hubs
             // this.currentIoTService = currentIoTService;
             this.dateTime = dateTime;
         }
-        public async Task RPIJoinRoom(string modelId ){
-            Console.WriteLine("RPI JOIN ROOM " + modelId);
+        public async Task RPIJoinRoom(RPIJoinRoomDto model ){
+            Console.WriteLine("RPI JOIN ROOM " + model.Id);
 
-            if (modelId.Contains(FarmingEndCategory.RPI))//
+            if (model.Id.Contains(FarmingEndCategory.RPI))//
             {
-                var id = int.Parse(modelId.Split("_")[0]);
+                var id = int.Parse(model.Id.Split("_")[0]);
                 // var id = this.currentIoTService.IoTId;
-                // var gh = this.appContext.MiniPcs.Where(x => x.Id == id)
-                //             .Include(x => x.Mikrokontrollers)
-                //             .Include(x=>x.Region).ThenInclude(x=>x.Land)
-                //             .FirstOrDefault();
-                // if (id > 0)
-                // {
-                //     this.appContext.IotStatus.Add(
-                //         new IotStatus
-                //         {
-                //             MicroControllerId = null,
-                //             MiniPcId = id,
-                //             IsActive = true,
-                //             CreatedAt = this.dateTime.Now
-                //         });
-                //     // List<int> mikroIds = gh.Mikrokontrollers.Select(x=>x.Id).ToList();
-                //     // List<int> validMicroIds = new List<int>();
-                //     // for (int i = 0; i < model.ESPIds.Count(); i++)
-                //     // {   
-                //     //     if(mikroIds.Contains(model.ESPIds.ElementAt(i))){
-                //     //         validMicroIds.Add(model.ESPIds.ElementAt(i));
-                //     //         this.appContext.IotStatus.Add(
-                //     //         new IotStatus
-                //     //         {
-                //     //             MicroControllerId = model.ESPIds.ElementAt(i),
-                //     //             MiniPcId = null,
-                //     //             IsActive = true,
-                //     //             CreatedAt = this.dateTime.Now
-                //     //         });
-                //     //     }
-                //     // }
-                    // await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
-                    await Clients.Group(1.ToString()+FarmingEndCategory.USER).SendAsync("RPIStatusChange", new RPIStatusChangeDto { Id = id, IsActive = true,ESPIds=new List<int>() });
-                // }
-                FarmingHub.connGroup.Add(Context.ConnectionId, modelId);
-                await Groups.AddToGroupAsync(Context.ConnectionId, modelId);
+                var gh = this.appContext.MiniPcs.Where(x => x.Id == id)
+                            .Include(x => x.Mikrokontrollers)
+                            .Include(x=>x.Region).ThenInclude(x=>x.Land)
+                            .FirstOrDefault();
+                if (id > 0)
+                {
+                    this.appContext.IotStatus.Add(
+                        new IotStatus
+                        {
+                            MicroControllerId = null,
+                            MiniPcId = id,
+                            IsActive = true,
+                            CreatedAt = this.dateTime.Now
+                        });
+                    List<int> mikroIds = gh.Mikrokontrollers.Select(x=>x.Id).ToList();
+                    List<int> validMicroIds = new List<int>();
+                    for (int i = 0; i < model.ESPIds.Count(); i++)
+                    {   
+                        if(mikroIds.Contains(model.ESPIds.ElementAt(i))){
+                            validMicroIds.Add(model.ESPIds.ElementAt(i));
+                            this.appContext.IotStatus.Add(
+                            new IotStatus
+                            {
+                                MicroControllerId = model.ESPIds.ElementAt(i),
+                                MiniPcId = null,
+                                IsActive = true,
+                                CreatedAt = this.dateTime.Now
+                            });
+                        }
+                    }
+                    await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
+                    await Clients.Group(gh.Region.Id.ToString()+FarmingEndCategory.USER).SendAsync("RPIStatusChange", new RPIStatusChangeDto { Id = id, IsActive = true,ESPIds=validMicroIds });
+                }
+                FarmingHub.connGroup.Add(Context.ConnectionId, model.Id);
+                await Groups.AddToGroupAsync(Context.ConnectionId, model.Id);
             }
         }
 
@@ -80,39 +80,39 @@ namespace backend.Hubs
             {
                 var id = int.Parse(model.Id.Split("_")[0]);
                 // var id = this.currentIoTService.IoTId;
-                // var gh = this.appContext.MiniPcs.Where(x => x.Id == id)
-                //             .Include(x => x.Mikrokontrollers)
-                //             .Include(x=>x.Region).ThenInclude(x=>x.Land)
-                //             .FirstOrDefault();
-                // if (gh != null)
-                // {
-                //     this.appContext.IotStatus.Add(
-                //         new IotStatus
-                //         {
-                //             MicroControllerId = null,
-                //             MiniPcId = gh.Id,
-                //             IsActive = false,
-                //             CreatedAt = this.dateTime.Now
-                //         });
-                //     List<int> mikroIds = gh.Mikrokontrollers.Select(x=>x.Id).ToList();
-                //     List<int> validMicroIds = new List<int>();
-                //     for (int i = 0; i < model.ESPIds.Count(); i++)
-                //     {   
-                //         if(mikroIds.Contains(model.ESPIds.ElementAt(i))){
-                //             validMicroIds.Add(model.ESPIds.ElementAt(i));
-                //             this.appContext.IotStatus.Add(
-                //             new IotStatus
-                //             {
-                //                 MicroControllerId = model.ESPIds.ElementAt(i),
-                //                 MiniPcId = null,
-                //                 IsActive = false,
-                //                 CreatedAt = this.dateTime.Now
-                //             });
-                //         }
-                //     }
-                //     await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
-                    await Clients.Group(1.ToString()+FarmingEndCategory.USER).SendAsync("RPIStatusChange", new RPIStatusChangeDto { Id = id, IsActive = true, ESPIds=new List<int>() });
-                // }
+                var gh = this.appContext.MiniPcs.Where(x => x.Id == id)
+                            .Include(x => x.Mikrokontrollers)
+                            .Include(x=>x.Region).ThenInclude(x=>x.Land)
+                            .FirstOrDefault();
+                if (gh != null)
+                {
+                    this.appContext.IotStatus.Add(
+                        new IotStatus
+                        {
+                            MicroControllerId = null,
+                            MiniPcId = gh.Id,
+                            IsActive = false,
+                            CreatedAt = this.dateTime.Now
+                        });
+                    List<int> mikroIds = gh.Mikrokontrollers.Select(x=>x.Id).ToList();
+                    List<int> validMicroIds = new List<int>();
+                    for (int i = 0; i < model.ESPIds.Count(); i++)
+                    {   
+                        if(mikroIds.Contains(model.ESPIds.ElementAt(i))){
+                            validMicroIds.Add(model.ESPIds.ElementAt(i));
+                            this.appContext.IotStatus.Add(
+                            new IotStatus
+                            {
+                                MicroControllerId = model.ESPIds.ElementAt(i),
+                                MiniPcId = null,
+                                IsActive = false,
+                                CreatedAt = this.dateTime.Now
+                            });
+                        }
+                    }
+                    await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
+                    await Clients.Group(gh.Region.Id.ToString()+FarmingEndCategory.USER).SendAsync("RPIStatusChange", new RPIStatusChangeDto { Id = id, IsActive = true, ESPIds=validMicroIds });
+                }
                 FarmingHub.connGroup.Add(Context.ConnectionId, model.Id);
                 await Groups.AddToGroupAsync(Context.ConnectionId, model.Id);
             }
@@ -166,33 +166,33 @@ namespace backend.Hubs
                 if (tryVal && roomId!.Contains(FarmingEndCategory.RPI))
                 {
                     var id = int.Parse(roomId.Split("_")[0]);
-                    //var id = this.currentIoTService.IoTId;
-                    // var gh = this.appContext.MiniPcs.Include(x=>x.Mikrokontrollers).Where(x => x.Id == id).FirstOrDefault();
-                    // if (gh != null)
-                    // {
-                    //     List<IotStatus> tempIotStatus = new List<IotStatus>();
-                    //     tempIotStatus.Add(new IotStatus
-                    //     {
-                    //         MicroControllerId = null,
-                    //         MiniPcId = gh.Id,
-                    //         IsActive = false,
-                    //         CreatedAt = this.dateTime.Now
-                    //     });
-                    //     List<int> espsId = gh.Mikrokontrollers.Select(x=>x.Id).ToList();
-                    //     for (int i = 0; i < espsId.Count(); i++)
-                    //     {
-                    //         tempIotStatus.Add(new IotStatus
-                    //         {
-                    //             MicroControllerId = espsId.ElementAt(i),
-                    //             MiniPcId = null,
-                    //             IsActive = false,
-                    //             CreatedAt = this.dateTime.Now
-                    //         });
-                    //     }
-                    //     this.appContext.IotStatus.AddRange(tempIotStatus);
-                    //     await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
-                        await Clients.Group(1.ToString()+FarmingEndCategory.USER).SendAsync("RPIStatusChange", new RPIStatusChangeDto { Id = id, IsActive = false, ESPIds= new List<int>()});
-                    // }
+                    // var id = this.currentIoTService.IoTId;
+                    var gh = this.appContext.MiniPcs.Include(x=>x.Mikrokontrollers).Where(x => x.Id == id).FirstOrDefault();
+                    if (gh != null)
+                    {
+                        List<IotStatus> tempIotStatus = new List<IotStatus>();
+                        tempIotStatus.Add(new IotStatus
+                        {
+                            MicroControllerId = null,
+                            MiniPcId = gh.Id,
+                            IsActive = false,
+                            CreatedAt = this.dateTime.Now
+                        });
+                        List<int> espsId = gh.Mikrokontrollers.Select(x=>x.Id).ToList();
+                        for (int i = 0; i < espsId.Count(); i++)
+                        {
+                            tempIotStatus.Add(new IotStatus
+                            {
+                                MicroControllerId = espsId.ElementAt(i),
+                                MiniPcId = null,
+                                IsActive = false,
+                                CreatedAt = this.dateTime.Now
+                            });
+                        }
+                        this.appContext.IotStatus.AddRange(tempIotStatus);
+                        await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
+                        await Clients.Group(gh.Region.Id.ToString()+FarmingEndCategory.USER).SendAsync("RPIStatusChange", new RPIStatusChangeDto { Id = id, IsActive = false, ESPIds=espsId});
+                    }
                     FarmingHub.connGroup.Remove(Context.ConnectionId);
 
                 }
@@ -225,10 +225,9 @@ namespace backend.Hubs
         public async Task AnswerReqCamera(string modelId, string sdp, string type)
         {
             Console.WriteLine("AnswerReqCamera "+modelId.ToString()+FarmingEndCategory.USER_REGION);
-
-            // var mnpc = await this.appContext.MiniPcs.Include(x=>x.Region).FirstOrDefaultAsync(x=>x.Id==model.Id);
-            // await Clients.Group(mnpc!.RegionId.ToString()+FarmingEndCategory.USER_REGION).SendAsync("AnswerReqActivatingCamera", new NegotiatingRTCPCDto { sdp=model.Data.sdp, type = model.Data.type});
-            await Clients.Group(modelId.ToString()+FarmingEndCategory.USER_REGION).SendAsync("AnswerReqActivatingCamera", new NegotiatingRTCPCDto { sdp=sdp, type = type});
+            var mnpc = await this.appContext.MiniPcs.Include(x=>x.Region).FirstOrDefaultAsync(x=>x.Id==int.Parse(modelId));
+            await Clients.Group(mnpc!.RegionId.ToString()+FarmingEndCategory.USER_REGION).SendAsync("AnswerReqActivatingCamera", new NegotiatingRTCPCDto { sdp=sdp, type = type});
+            // await Clients.Group(modelId.ToString()+FarmingEndCategory.USER_REGION).SendAsync("AnswerReqActivatingCamera", new NegotiatingRTCPCDto { sdp=sdp, type = type});
         }
     }
 
