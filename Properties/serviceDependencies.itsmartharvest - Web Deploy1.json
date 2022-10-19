@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "signalr1": {
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.SignalRService/SignalR/backend-sorgum-signalr",
+      "type": "signalr.azure",
+      "connectionId": "Azure:SignalR:ConnectionString",
+      "dynamicId": null
+    },
+    "mssql1": {
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/azrsqldbserver/databases/asqlsorgumdb",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:MySqlConnectionApp",
+      "dynamicId": null
+    }
+  }
+}

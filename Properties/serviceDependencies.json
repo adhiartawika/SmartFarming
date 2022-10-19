@@ -7,7 +7,8 @@
     },
     "mssql1": {
       "type": "mssql",
-      "connectionId": "ConnectionStrings:MySqlConnectionApp"
+      "connectionId": "ConnectionStrings:MySqlConnectionApp",
+      "dynamicId": null
     }
   }
 }

@@ -47,10 +47,11 @@ namespace backend.Hubs
                         new IotStatus
                         {
                             MicroControllerId = null,
-                            MiniPcId = id,
+                            MiniPcId = gh.Id,
                             IsActive = true,
                             CreatedAt = this.dateTime.Now
                         });
+                    await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
                     List<int> mikroIds = gh.Mikrokontrollers.Select(x=>x.Id).ToList();
                     List<int> validMicroIds = new List<int>();
                     for (int i = 0; i < espsIds.Count(); i++)
@@ -65,9 +66,10 @@ namespace backend.Hubs
                                 IsActive = true,
                                 CreatedAt = this.dateTime.Now
                             });
+                            await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
                         }
                     }
-                    await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
+                    
                     await Clients.Group(gh.Region.Id.ToString()+FarmingEndCategory.USER).SendAsync("RPIStatusChange", new RPIStatusChangeDto { Id = id, IsActive = true,ESPIds=validMicroIds });
                 }
                 FarmingHub.connGroup.Add(Context.ConnectionId, modelId);
@@ -94,6 +96,7 @@ namespace backend.Hubs
                             IsActive = false,
                             CreatedAt = this.dateTime.Now
                         });
+                    await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
                     List<int> mikroIds = gh.Mikrokontrollers.Select(x=>x.Id).ToList();
                     List<int> validMicroIds = new List<int>();
                     for (int i = 0; i < espsIds.Count(); i++)
@@ -109,8 +112,8 @@ namespace backend.Hubs
                                 CreatedAt = this.dateTime.Now
                             });
                         }
+                        await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
                     }
-                    await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
                     await Clients.Group(gh.Region.Id.ToString()+FarmingEndCategory.USER).SendAsync("RPIStatusChange", new RPIStatusChangeDto { Id = id, IsActive = true, ESPIds=validMicroIds });
                 }
                 FarmingHub.connGroup.Add(Context.ConnectionId, modelId);
@@ -178,6 +181,8 @@ namespace backend.Hubs
                             IsActive = false,
                             CreatedAt = this.dateTime.Now
                         });
+                        await this.appContext.SaveChangesAsync(new System.Threading.CancellationToken());
+
                         List<int> espsId = gh.Mikrokontrollers.Select(x=>x.Id).ToList();
                         for (int i = 0; i < espsId.Count(); i++)
                         {

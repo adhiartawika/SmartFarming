@@ -29,13 +29,15 @@ using backend.Hubs;
 var builder = WebApplication.CreateBuilder(args);
 IConfiguration configuration = builder.Configuration;
 
-var settings = builder.Configuration.GetConnectionString("MySqlConnectionApp");
+//var settings = builder.Configuration.GetConnectionString("MySqlConnectionApp");
+//if (!builder.Environment.IsDevelopment())
+   var settings = builder.Configuration.GetConnectionString("azure");
 var mailKitOptions = builder.Configuration.GetSection("EmailSettings").Get<MailKitOptions>();
 // Add services to the container.
 builder.Services.AddSignalR();
 builder.Services.AddCors(x=>x.AddDefaultPolicy(y=>{
     y.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
-    y.AllowCredentials().WithOrigins("http://0.0.0.0:4200");
+    y.AllowCredentials().WithOrigins("https://itsmartharvest.azurewebsites.net/");
 }));
 builder.Services.AddControllersWithViews().AddJsonOptions(jsonOptions =>
                 {
@@ -49,8 +51,13 @@ builder.Services.AddScoped<IDateTime, DateTimeService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ICurrentIoTService, CurrentIoTService>();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseMySql(settings, new MySqlServerVersion(new Version(10, 1, 40))));
+//if (builder.Environment.IsDevelopment())
+//    builder.Services.AddDbContext<AppDbContext>(options =>
+//            options.UseMySql(settings, new MySqlServerVersion(new Version(10, 1, 40))));
+//else
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlServer(settings));
+
 
 builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
@@ -142,6 +149,7 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

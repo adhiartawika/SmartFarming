@@ -203,6 +203,9 @@ namespace backend.Persistences
             // builder.Entity<DataResult>()
             //         .Property(x => x.RLampState)
             //         .HasColumnType("decimal(6,3)");
+            builder.Entity<Sensor>().HasOne(x => x.ParentType).WithMany().HasForeignKey(x => x.ParentTypeId).OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<Data>().HasOne(x => x.Sensor).WithMany().HasForeignKey(x => x.SensorId).OnDelete(DeleteBehavior.Restrict);
+
             builder.Entity<Data>()
                     .Property(x => x.ValueParameter)
                     .HasColumnType("decimal(7,3)");
