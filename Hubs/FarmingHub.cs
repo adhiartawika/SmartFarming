@@ -33,6 +33,7 @@ namespace backend.Hubs
         public async Task RPIJoinRoom(string modelId, List<int> espsIds ){
             Console.WriteLine("RPI JOIN ROOM " + modelId);
 
+            Console.WriteLine(modelId.Contains(FarmingEndCategory.RPI));
             if (modelId.Contains(FarmingEndCategory.RPI))//
             {
                 var id = int.Parse(modelId.Split("_")[0]);
@@ -72,6 +73,7 @@ namespace backend.Hubs
                     
                     await Clients.Group(gh.Region.Id.ToString()+FarmingEndCategory.USER).SendAsync("RPIStatusChange", new RPIStatusChangeDto { Id = id, IsActive = true,ESPIds=validMicroIds });
                 }
+                Console.WriteLine(Context.ConnectionId);
                 FarmingHub.connGroup.Add(Context.ConnectionId, modelId);
                 await Groups.AddToGroupAsync(Context.ConnectionId, modelId);
             }

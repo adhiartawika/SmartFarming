@@ -29,15 +29,16 @@ using backend.Hubs;
 var builder = WebApplication.CreateBuilder(args);
 IConfiguration configuration = builder.Configuration;
 
-//var settings = builder.Configuration.GetConnectionString("MySqlConnectionApp");
+var settings = builder.Configuration.GetConnectionString("MySqlConnectionApp");
 //if (!builder.Environment.IsDevelopment())
-   var settings = builder.Configuration.GetConnectionString("azure");
+//    var settings = builder.Configuration.GetConnectionString("azure");
 var mailKitOptions = builder.Configuration.GetSection("EmailSettings").Get<MailKitOptions>();
 // Add services to the container.
 builder.Services.AddSignalR();
 builder.Services.AddCors(x=>x.AddDefaultPolicy(y=>{
     y.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
-    y.AllowCredentials().WithOrigins("https://itsmartharvest.azurewebsites.net/");
+    // y.AllowCredentials().WithOrigins("https://itsmartharvest.azurewebsites.net/");
+    y.AllowCredentials().WithOrigins("*");
 }));
 builder.Services.AddControllersWithViews().AddJsonOptions(jsonOptions =>
                 {
@@ -51,12 +52,12 @@ builder.Services.AddScoped<IDateTime, DateTimeService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ICurrentIoTService, CurrentIoTService>();
 builder.Services.AddHttpContextAccessor();
-//if (builder.Environment.IsDevelopment())
-//    builder.Services.AddDbContext<AppDbContext>(options =>
-//            options.UseMySql(settings, new MySqlServerVersion(new Version(10, 1, 40))));
-//else
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlServer(settings));
+// if (builder.Environment.IsDevelopment())
+   builder.Services.AddDbContext<AppDbContext>(options =>
+   options.UseMySql(settings, new MySqlServerVersion(new Version(10, 1, 40))));
+// else
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseSqlServer(settings));
 
 
 builder.Services.AddScoped<ApplicationDbContextInitialiser>();
@@ -65,7 +66,7 @@ builder.Services.AddTransient<INotificationService,NotificationService>();
 builder.Services.AddMailKit(config => config.UseMailKit(mailKitOptions));
 builder.Services.AddSingleton<IUtilityService, UtilityService>();
 builder.Services.AddSingleton<IMailHelperService, MailHelperService>();
-builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>( c =>
+builder.Services.AddIdentity<ApplicationUser,UserRole>( c =>
         {
             c.Password.RequireDigit = false;
             c.Password.RequiredLength = 3;
@@ -74,10 +75,12 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>( c =>
             c.Password.RequireUppercase = false;
             c.Password.RequireNonAlphanumeric = false;
             c.User.RequireUniqueEmail = true;
-            c.SignIn.RequireConfirmedEmail = true;
+            c.SignIn.RequireConfirmedEmail = false;
         })
+        .AddRoles<UserRole>()
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
+
 builder.Services.AddAuthentication()
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, c =>
     {
@@ -153,13 +156,13 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
-    //endpoints.MapControllers();
+    // endpoints.MapControllers();
     endpoints.MapControllerRoute(
                    name: "default",
                    pattern: "{controller}/{action=Index}/{id?}");

@@ -14,6 +14,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using  Microsoft.AspNetCore.Identity;
+using backend.Persistences;
 
 namespace backend.Controllers
 {
@@ -21,6 +23,7 @@ namespace backend.Controllers
     [Route("api/[controller]/[action]")]
     public class AccountCrudController : ControllerBase
     {
+        private readonly AppDbContext context;
         private UserManager<ApplicationUser> _userManager;
         private SignInManager<ApplicationUser> _signInManager;
         private IMailHelperService _mailHelperService;
@@ -32,7 +35,8 @@ namespace backend.Controllers
             SignInManager<ApplicationUser> signInManager,
             IMailHelperService mailHelperService,
             IMailTemplateHelperService mailTemplateHelperService,
-            IConfiguration config
+            IConfiguration config,
+            AppDbContext context
             )
         {
             _userManager = userManager;
@@ -40,6 +44,7 @@ namespace backend.Controllers
             _mailHelperService = mailHelperService;
             _mailTemplateHelperService = mailTemplateHelperService;
             _config = config;
+            this.context = context;
         }
         
         [HttpPost]
@@ -47,7 +52,7 @@ namespace backend.Controllers
         {
             if (userForm.Password != userForm.ConfirmPassword)
             {
-                return new BadRequestObjectResult(new AppResponse { Message = "Konfirmasi password tidak cocok." });
+                return new BadRequestObjectResult(new AppResponse { message = "Konfirmasi password tidak cocok." });
             }
             var user = new ApplicationUser
             {
@@ -57,8 +62,10 @@ namespace backend.Controllers
                 NormalizedEmail = userForm.Email.ToUpper(),
                 NormalizedUserName = userForm.Username.ToUpper(),
             };
+            var s = this.context.UserRoles.Where(x => x.Id == userForm.RoleId).FirstOrDefault();
+            // var assignrole = await _userManager.AddToRoleAsync(user,rl.Name);
             var result = await _userManager.CreateAsync(user,userForm.Password);
-
+            var rl = await _userManager.AddToRoleAsync(user,s.Name);
             if (result.Succeeded)
             {
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -73,9 +80,9 @@ namespace backend.Controllers
                 var htmlTemplate = await _mailTemplateHelperService.GetTemplateHtmlAsStringAsync<NewUserEmailModel>("UserRegistrationSuccess.html", model);
                 _mailHelperService.SendMail(model.Email, "Pendaftaran berhasil!", htmlTemplate);
 
-                return new OkObjectResult(new AppResponse { Message = "Pendaftaran berhasil. Silahkan cek email anda." });
+                return new OkObjectResult(new AppResponse { message = "Pendaftaran berhasil. Silahkan cek email anda." });
             }
-            return new BadRequestObjectResult(new AppResponse { Message="Email sudah digunakan."});
+            return new BadRequestObjectResult(new AppResponse { message="Email sudah digunakan."});
         }
         [HttpGet]
         public async Task<IActionResult> Activate([FromQuery] string Token, [FromQuery] string Email)
@@ -86,7 +93,7 @@ namespace backend.Controllers
             if (user == null)
             {
                 //TODO Create view no user found
-                return new BadRequestObjectResult(new AppResponse { Message = "User tidak ditemukan." });
+                return new BadRequestObjectResult(new AppResponse { message = "User tidak ditemukan." });
             }
             var result = await _userManager.ConfirmEmailAsync(user, Token);
             if (result.Succeeded)
@@ -99,7 +106,7 @@ namespace backend.Controllers
             else
             {
                 //TODO Create view error confirm
-                return new BadRequestObjectResult(new AppResponse { Message = "User tidak ditemukan." });
+                return new BadRequestObjectResult(new AppResponse { message = "User tidak ditemukan." });
             }
         }
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -122,14 +129,14 @@ namespace backend.Controllers
                         var resultChangeEmail = await _userManager.ChangeEmailAsync(user, userForm.Email, token);
                         if (resultChangeEmail.Succeeded)
                         {
-                            return new OkObjectResult(new AppResponse { Message = "Perubahan data berhasil." });
+                            return new OkObjectResult(new AppResponse { message = "Perubahan data berhasil." });
                         }
-                        return new BadRequestObjectResult(new AppResponse { Message = "Perubahan email gagal." });
+                        return new BadRequestObjectResult(new AppResponse { message = "Perubahan email gagal." });
                     }
-                    return new OkObjectResult(new AppResponse { Message = "Perubahan data berhasil." });
+                    return new OkObjectResult(new AppResponse { message = "Perubahan data berhasil." });
                 }
             }
-            return new BadRequestObjectResult(new AppResponse { Message = "Email sudah digunakan." });
+            return new BadRequestObjectResult(new AppResponse { message = "Email sudah digunakan." });
         }
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPut]
@@ -143,11 +150,11 @@ namespace backend.Controllers
 
                 if (result.Succeeded)
                 {
-                    return new OkObjectResult(new AppResponse { Message = "Perubahan data berhasil." });
+                    return new OkObjectResult(new AppResponse { message = "Perubahan data berhasil." });
                 }
-                return new BadRequestObjectResult(new AppResponse { Message = "Password salah." });
+                return new BadRequestObjectResult(new AppResponse { message = "Password salah." });
             }
-            return new BadRequestObjectResult(new AppResponse { Message = "Pengguna tidak ada." });
+            return new BadRequestObjectResult(new AppResponse { message = "Pengguna tidak ada." });
         }
         
         [HttpPost]
@@ -171,11 +178,11 @@ namespace backend.Controllers
                     };
                     var htmlTemplate = await _mailTemplateHelperService.GetTemplateHtmlAsStringAsync<UserOtpModel>("UserFogetPasswordOtp.html", model);
                     _mailHelperService.SendMail(model.Email, "Reset Password!", htmlTemplate);
-                    return new OkObjectResult(new AppResponse { Message = "Kami telah mengirim kode ke email anda." });
+                    return new OkObjectResult(new AppResponse { message = "Kami telah mengirim kode ke email anda." });
                 }
-                return new BadRequestObjectResult(new AppResponse { Message = "Terdapat kesalahan dalam pembuatan kode OTP." });
+                return new BadRequestObjectResult(new AppResponse { message = "Terdapat kesalahan dalam pembuatan kode OTP." });
             }
-            return new BadRequestObjectResult(new AppResponse { Message = "Pengguna tidak ada." });
+            return new BadRequestObjectResult(new AppResponse { message = "Pengguna tidak ada." });
         }
 
         [HttpPost]
@@ -186,7 +193,7 @@ namespace backend.Controllers
             {
                 if (user.OtpExpired < DateTime.Now)
                 {
-                    return new BadRequestObjectResult(new AppResponse { Message = "Kode OTP sudah kadaluwarsa." });
+                    return new BadRequestObjectResult(new AppResponse { message = "Kode OTP sudah kadaluwarsa." });
 
                 }
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -197,10 +204,10 @@ namespace backend.Controllers
                     user.Otp = null;
                     user.OtpExpired = null;
                     await _userManager.UpdateAsync(user);
-                    return new OkObjectResult(new AppResponse { Message = "Atur ulang password berhasil." });
+                    return new OkObjectResult(new AppResponse { message = "Atur ulang password berhasil." });
                 }
             }
-            return new BadRequestObjectResult(new AppResponse { Message = "Email sudah digunakan." });
+            return new BadRequestObjectResult(new AppResponse { message = "Email sudah digunakan." });
         }
         
         [HttpGet]
@@ -218,17 +225,18 @@ namespace backend.Controllers
             if (user != null)
             {
                 var result = await _signInManager.CheckPasswordSignInAsync(user, userForm.Password, false);
+                var ss = await _userManager.GetRolesAsync(user);
+                var roleid = this.context.UserRoles.Where(x => ss.Contains(x.RoleName)).FirstOrDefault();
 
                 if (result.Succeeded)
                 {
                     //var t = await _userManager.CreateSecurityTokenAsync(user);
-
                     var claims = new Claim[]
                     {
                         new Claim(JwtRegisteredClaimNames.Sub,user.Id.ToString()),
                         new Claim(JwtRegisteredClaimNames.Email, user.Email),
                         new Claim(JwtRegisteredClaimNames.GivenName, user.Name),
-                        //tambah role
+                        new Claim("Role",roleid.Id.ToString())
                     };
                     var secret = _config["JwtSettings:SymKey"];
                     var secretByte = Encoding.UTF8.GetBytes(secret);
@@ -237,14 +245,14 @@ namespace backend.Controllers
                     var signinCredentials = new SigningCredentials(key, algorithm);
                     var token = new JwtSecurityToken(null,null,claims,DateTime.Now,DateTime.Now.AddHours(12),signinCredentials);
                     var tokenJson = new JwtSecurityTokenHandler().WriteToken(token);
-                    return new OkObjectResult(new LoginResponse { Message = "Masuk.", AccessToken = tokenJson });
+                    return new OkObjectResult(new LoginResponse { message = "Masuk.", accessToken = tokenJson });
                 }
                 else if (result.IsNotAllowed)
                 {
-                    return new BadRequestObjectResult(new AppResponse { Message = "Akun belum aktif." });
+                    return new BadRequestObjectResult(new AppResponse { message = "Akun belum aktif." });
                 }
             }
-            return new BadRequestObjectResult(new AppResponse { Message = "Pengguna tidak ditemukan." });
+            return new BadRequestObjectResult(new AppResponse { message = "Pengguna tidak ditemukan." });
         }
         //TODO Delete User
     }
@@ -260,6 +268,7 @@ namespace backend.Controllers
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
 
+        public int RoleId {get;set;}
     }
     public class UserUpdateForm : UserForm
     {
@@ -305,6 +314,6 @@ namespace backend.Controllers
     }
     public class LoginResponse : AppResponse
     {
-        public string AccessToken { get; set; }
+        public string accessToken { get; set; }
     }
 }

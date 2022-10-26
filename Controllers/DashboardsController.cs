@@ -19,42 +19,27 @@ namespace backend.Controllers
         }
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<DashboardDataDto>> OverviewMikroMini(int LandId){
-            var obj_baru =( await this.context.Mikrokontrollers
-            .Include(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x=>x.Land)
-            .Include(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x=>x.Plant)
+            var obj_baru =( await this.context.MiniPcs
+            .Include(x => x.Region).ThenInclude(x=>x.Land)
+            .Include(x => x.Region).ThenInclude(x=>x.Plant)
             .Include(x=>x.IotStatus)
-            .Include(x=>x.Sensor)
-            .Where(x => x.MiniPc.Region.LandId == LandId)
+            .Include(x => x.Mikrokontrollers).ThenInclude(x=>x.Sensor)
+            .Where(x => x.Region.LandId == LandId)
             .OrderBy(x=> x.CreatedAt).ToListAsync())
-            .Select(x=> new Mikrokontroller{
-                CreatedAt=x.CreatedAt,
-                CreatedBy=x.CreatedBy,
-                DeletedAt=x.DeletedAt,
-                DeletedBy=x.DeletedBy,
-                Description=x.Description,
-                Id=x.Id,
-                MiniPcId = x.MiniPc.Id,
-                MiniPc = x.MiniPc,
-                IotStatus= x.IotStatus != null &&  x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!=null?new List<IotStatus>(){x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!}:new List<IotStatus>(),
-                LastModifiedAt=x.LastModifiedAt,
-                LastModifiedBy=x.LastModifiedBy,
-                Name=x.Name,
-                Sensor=x.Sensor,  
-            }).ToList().Where(x=>x.Sensor.Where(y=>y.DeletedAt==null).Count()>0)
             .Select(y => new DashboardDataDto{
-                LandName = y.MiniPc.Region.Land.Name,
-                RegionName = y.MiniPc.Region.Name,
-                MiniPcName = y.MiniPc.Name,
-                MikroCount = y.MiniPc.Mikrokontrollers.Count(),
-                SensorCount = y.Sensor.Count(),
-                Status = y.IotStatus == null || y.IotStatus.Count()==0 ? false : y.IotStatus.OrderBy(x=>y.CreatedAt).LastOrDefault()!.IsActive
+                LandName = y.Region.Land.Name,
+                RegionName = y.Region.Name,
+                MiniPcName = y.Name,
+                MikroCount = y.Mikrokontrollers.Count(),
+                SensorCount = y.Mikrokontrollers.SelectMany(x => x.Sensor).Count(),
+                Status = y.IotStatus == null || y.IotStatus.Count()==0 ? false : y.IotStatus.OrderBy(y=>y.CreatedAt).LastOrDefault()!.IsActive
             });
 
             return obj_baru;
         }
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<SensorParamViewDto>> SensorParamView(int LandId){
-            // var data1 = this.context.Datas
+            // var data1 = this.conteyt.Datas
             // .Include(x => x.Sensor).ThenInclude(x => x.MikroController).ThenInclude(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x => x.Plant)
             // .Include(x=>x.ParentParam).ThenInclude(x=>x.Plant)
             // .Include(x=>x.ParentParam).ThenInclude(x=>x.Plant).ThenInclude(x=>x.ParentParameters).ThenInclude(y => y.ParentTypes)

@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Model.IdEntity;
+using backend.Identity;
+using backend.Model.AppEntity;
+using  Microsoft.AspNetCore.Identity;
 
 namespace backend.Seeders
 {
@@ -22,6 +25,37 @@ namespace backend.Seeders
         //     //     await ctx.SaveChangesAsync();
         //     // }
         // }
+    public static async Task SeedRoleAsync(AppDbContext ctx)
+        {
+            if (!(ctx.UserRoles.ToList().Count()>0))
+            {
+
+                ctx.UserRoles.AddRange(
+                    new UserRole
+                    {
+                        Id = 1,
+                        RoleName = "Super Admin",
+                        Name = "Super Admin",
+                        NormalizedName = "Super Admin"
+                    },
+                    new UserRole
+                    {
+                        Id = 2,
+                        RoleName = "Admin",
+                        Name = "Admin",
+                        NormalizedName = "Admin"
+                    },
+                    new UserRole
+                    {
+                        Id = 3,
+                        RoleName = "User",
+                        Name = "User",
+                        NormalizedName = "User"
+                    }
+                ); ; ;
+                await ctx.SaveChangesAsync();
+            }
+        }
         public static async Task SeedParentTypeAsync(AppDbContext ctx)
         {
             if (!(ctx.ParentTypes.ToList().Count()>0))

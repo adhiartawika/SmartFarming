@@ -70,6 +70,7 @@ namespace backend.Persistences
             await AppDbContextSeeder.SeedMicroAsync(_context);
             await AppDbContextSeeder.SeedSensorAsync(_context);
             await AppDbContextSeeder.SeedDataAsync(_context);
+            await AppDbContextSeeder.SeedRoleAsync(_context);
             //await AppIdentityDbContextSeed.SeedDefaultUserAsync(_userManager);
         }
     }

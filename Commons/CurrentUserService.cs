@@ -12,7 +12,8 @@ namespace backend.Commons
 {
     public interface ICurrentUserService
     {
-        int? UserId { get; } 
+        int? UserId { get;}
+        int? RoleId {get;}
         //roler int
     }
     public class CurrentUserService : ICurrentUserService
@@ -25,7 +26,10 @@ namespace backend.Commons
             //this._httpClientFactory = httpClientFactory;
             //this.getUserInfo();
             var temp = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var tempRole = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Role);
+
             UserId = int.Parse(temp??"0");
+            RoleId = int.Parse(tempRole??"0");
         }
 
         private async Task getUserInfo()
@@ -42,13 +46,16 @@ namespace backend.Commons
                     var tokenS = handler.ReadToken(accessToken) as JwtSecurityToken;
                     //var id = tokenS.Claims.First(claim => claim.Type == "sub").Value;
                     var id = tokenS.Subject;
-                    if (id != null)
+                    var roleid = tokenS.Claims.First(claim => claim.Type == "role").Value;
+                    if (id != null && roleid != null)
                     {
                         this.UserId = int.Parse(id);
+                        this.RoleId = int.Parse(roleid);
                     }
                     else
                     {
                         this.UserId = null;
+                        this.RoleId = null;
                     }
                 }
                 else
@@ -60,5 +67,7 @@ namespace backend.Commons
         }
 
         public int? UserId { get; private set; }
+        public int? RoleId {get; private set;}
+
     }
 }

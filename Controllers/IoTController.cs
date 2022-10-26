@@ -65,9 +65,9 @@ namespace backend.Controllers
                 var signinCredentials = new SigningCredentials(key, algorithm);
                 var token = new JwtSecurityToken(null, null, claims, null, null, signinCredentials);
                 var tokenJson = new JwtSecurityTokenHandler().WriteToken(token);
-                return new OkObjectResult(new LoginResponse { Message = "Masuk.", AccessToken = tokenJson });
+                return new OkObjectResult(new LoginResponse { message = "Masuk.", accessToken = tokenJson });
             }
-            return new BadRequestObjectResult(new AppResponse { Message = "IoT tidak ditemukan." });
+            return new BadRequestObjectResult(new AppResponse { message = "IoT tidak ditemukan." });
         }
     }
     public class IoTSubmitDataForm

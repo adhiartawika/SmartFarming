@@ -10,11 +10,15 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using  Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace backend.Persistences
 {
     public interface IAppDbContext
     {
+
+        public DbSet<UserRole>UserRoles{get;set;}
         public DbSet<Plant> Plants { get; set; }
         public DbSet<Land> Lands { get; set; }
 
@@ -68,6 +72,8 @@ namespace backend.Persistences
             this._currentIoTService = currentIoTService;
             this._dateTime = dateTime;
         }
+
+        public DbSet<UserRole>UserRoles{get;set;}
         public DbSet<Plant> Plants { get ; set ; }
         // public DbSet<DataResult> DataResults { get ; set ; }
         public DbSet<Land> Lands { get ; set ; }
@@ -195,7 +201,7 @@ namespace backend.Persistences
             //         .Property(x => x.RFanMode)
             //         .HasColumnType("decimal(6,3)");
             // builder.Entity<DataResult>()
-            //         .Property(x => x.RServoTime)
+            //         .Property(x => x.RServoTime)s
             //         .HasColumnType("decimal(6,3)");
             // builder.Entity<DataResult>()
             //         .Property(x => x.RWaterPumpTime)
@@ -203,9 +209,21 @@ namespace backend.Persistences
             // builder.Entity<DataResult>()
             //         .Property(x => x.RLampState)
             //         .HasColumnType("decimal(6,3)");
-            builder.Entity<Sensor>().HasOne(x => x.ParentType).WithMany().HasForeignKey(x => x.ParentTypeId).OnDelete(DeleteBehavior.Restrict);
-            builder.Entity<Data>().HasOne(x => x.Sensor).WithMany().HasForeignKey(x => x.SensorId).OnDelete(DeleteBehavior.Restrict);
-
+            // builder.Entity<Sensor>().HasOne(x => x.ParentType).WithMany().HasForeignKey(x => x.ParentTypeId).OnDelete(DeleteBehavior.Restrict);
+            // builder.Entity<Data>().HasOne(x => x.Sensor).WithMany().HasForeignKey(x => x.SensorId).OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<ApplicationUser>()
+                .HasMany(u => u.Roles)
+                .WithMany(r => r.User)
+                .UsingEntity<IdentityUserRole<int>>(
+                    UserRole => UserRole.HasOne<UserRole>()
+                    .WithMany()
+                    .HasForeignKey(ur => ur.RoleId)
+                    .IsRequired(),
+                    UserRole => UserRole.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(ur => ur.UserId)
+                    .IsRequired()
+                );
             builder.Entity<Data>()
                     .Property(x => x.ValueParameter)
                     .HasColumnType("decimal(7,3)");

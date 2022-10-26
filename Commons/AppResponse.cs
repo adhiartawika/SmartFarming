@@ -7,7 +7,7 @@ namespace backend.Commons
 {
     public class AppResponse
     {
-        public string Message { get; set; }
+        public string message { get; set; }
     }
     public class CreateResponse<T>: AppResponse
     {

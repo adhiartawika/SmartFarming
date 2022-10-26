@@ -127,13 +127,10 @@ namespace backend.Controllers
                 MiniPcId = x.MiniPcId,
                 MiniPc = x.MiniPc,
                 Sensor = x.Sensor,
-                // IotId=x.MiniPc.IotId,
                 IotStatus= x.IotStatus != null &&  x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!=null?new List<IotStatus>(){x.IotStatus.OrderBy(x=>x.CreatedAt).LastOrDefault()!}:new List<IotStatus>(),
                 LastModifiedAt=x.LastModifiedAt,
                 LastModifiedBy=x.LastModifiedBy,
                 Name=x.Name
-                // Region=x.Region,
-                // RegionId=x.RegionId
             })
             .Where(x => x.Name.ToLower().Contains(query.Search));
             

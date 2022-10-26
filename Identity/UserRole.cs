@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 
 namespace backend.Identity
 {
-    public class UserRole
+    public class UserRole:IdentityRole<int>
     {
-        [Required]
-        public int IdRole {get;set;}
-        public string RoleName {get;set;}
+        public UserRole(){
+            this.User = new HashSet<ApplicationUser>();
+        }
+        public string RoleName { get; set; }
+        public ICollection<ApplicationUser> User {get;set;}
     }
 }

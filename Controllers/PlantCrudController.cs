@@ -12,6 +12,7 @@ using System.Text;
 namespace backend.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]/[action]")]
     public class PlantCrudController : ControllerBase
     {
