@@ -56,8 +56,8 @@ namespace backend.Controllers
             }
             var user = new ApplicationUser
             {
-                UserName = userForm.Email,
-                Name = userForm.Username,
+                UserName = userForm.Username,
+                Name = userForm.Name,
                 Email = userForm.Email,
                 NormalizedEmail = userForm.Email.ToUpper(),
                 NormalizedUserName = userForm.Username.ToUpper(),
@@ -220,14 +220,13 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<IActionResult> Login([FromForm] UserLoginForm userForm)
         {
-            var user = await _userManager.FindByNameAsync(userForm.Email);
+            var user = await _userManager.FindByEmailAsync(userForm.Email);
 
             if (user != null)
             {
                 var result = await _signInManager.CheckPasswordSignInAsync(user, userForm.Password, false);
                 var ss = await _userManager.GetRolesAsync(user);
                 var roleid = this.context.UserRoles.Where(x => ss.Contains(x.RoleName)).FirstOrDefault();
-
                 if (result.Succeeded)
                 {
                     //var t = await _userManager.CreateSecurityTokenAsync(user);
@@ -236,7 +235,7 @@ namespace backend.Controllers
                         new Claim(JwtRegisteredClaimNames.Sub,user.Id.ToString()),
                         new Claim(JwtRegisteredClaimNames.Email, user.Email),
                         new Claim(JwtRegisteredClaimNames.GivenName, user.Name),
-                        new Claim("Role",roleid.Id.ToString())
+                        new Claim(ClaimTypes.Role,roleid.Id.ToString())
                     };
                     var secret = _config["JwtSettings:SymKey"];
                     var secretByte = Encoding.UTF8.GetBytes(secret);
@@ -265,6 +264,7 @@ namespace backend.Controllers
     public class UserCreateForm: UserForm
     {
         public string Username { get; set; }
+        public string Name { get; set; }
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
 
