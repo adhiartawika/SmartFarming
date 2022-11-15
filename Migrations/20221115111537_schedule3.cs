@@ -4,7 +4,7 @@
 
 namespace backend.Migrations
 {
-    public partial class institusi : Migration
+    public partial class schedule3 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

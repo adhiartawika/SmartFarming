@@ -6,11 +6,26 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace backend.Migrations
 {
-    public partial class m : Migration
+    public partial class schedule : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterDatabase()
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Disease",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Disease", x => x.Id);
+                })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -108,6 +123,38 @@ namespace backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Plants", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ScheduleIntervals",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Count = table.Column<int>(type: "int", nullable: false),
+                    IntervalType = table.Column<byte>(type: "tinyint unsigned", nullable: false),
+                    WeekDays = table.Column<int>(type: "int", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScheduleIntervals", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ScheduleTags",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScheduleTags", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -292,6 +339,52 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Schedules",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    StartingDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Note = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DiseaseId = table.Column<int>(type: "int", nullable: false),
+                    ScheduleTagId = table.Column<int>(type: "int", nullable: false),
+                    LandId = table.Column<int>(type: "int", nullable: false),
+                    ScheduleIntervalId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Schedules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Schedules_Disease_DiseaseId",
+                        column: x => x.DiseaseId,
+                        principalTable: "Disease",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Schedules_Lands_LandId",
+                        column: x => x.LandId,
+                        principalTable: "Lands",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Schedules_ScheduleIntervals_ScheduleIntervalId",
+                        column: x => x.ScheduleIntervalId,
+                        principalTable: "ScheduleIntervals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Schedules_ScheduleTags_ScheduleTagId",
+                        column: x => x.ScheduleTagId,
+                        principalTable: "ScheduleTags",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "IdentityUserRole<int>",
                 columns: table => new
                 {
@@ -396,6 +489,49 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ScheduleLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Timestamp = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Description = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ScheduleId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScheduleLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ScheduleLogs_Schedules_ScheduleId",
+                        column: x => x.ScheduleId,
+                        principalTable: "Schedules",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ScheduleOccurrences",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ScheduleId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScheduleOccurrences", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ScheduleOccurrences_Schedules_ScheduleId",
+                        column: x => x.ScheduleId,
+                        principalTable: "Schedules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Mikrokontrollers",
                 columns: table => new
                 {
@@ -422,6 +558,30 @@ namespace backend.Migrations
                         principalTable: "MiniPcs",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ScheduleLogImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Byte = table.Column<byte[]>(type: "longblob", nullable: false),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ExtensionType = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ScheduleLogId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScheduleLogImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ScheduleLogImages_ScheduleLogs_ScheduleLogId",
+                        column: x => x.ScheduleLogId,
+                        principalTable: "ScheduleLogs",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -673,6 +833,41 @@ namespace backend.Migrations
                 column: "PlantId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ScheduleLogImages_ScheduleLogId",
+                table: "ScheduleLogImages",
+                column: "ScheduleLogId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScheduleLogs_ScheduleId",
+                table: "ScheduleLogs",
+                column: "ScheduleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScheduleOccurrences_ScheduleId",
+                table: "ScheduleOccurrences",
+                column: "ScheduleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_DiseaseId",
+                table: "Schedules",
+                column: "DiseaseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_LandId",
+                table: "Schedules",
+                column: "LandId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_ScheduleIntervalId",
+                table: "Schedules",
+                column: "ScheduleIntervalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_ScheduleTagId",
+                table: "Schedules",
+                column: "ScheduleTagId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sensors_MikrocontrollerId",
                 table: "Sensors",
                 column: "MikrocontrollerId");
@@ -711,6 +906,12 @@ namespace backend.Migrations
                 name: "Parameters");
 
             migrationBuilder.DropTable(
+                name: "ScheduleLogImages");
+
+            migrationBuilder.DropTable(
+                name: "ScheduleOccurrences");
+
+            migrationBuilder.DropTable(
                 name: "UserDevices");
 
             migrationBuilder.DropTable(
@@ -726,6 +927,9 @@ namespace backend.Migrations
                 name: "Users");
 
             migrationBuilder.DropTable(
+                name: "ScheduleLogs");
+
+            migrationBuilder.DropTable(
                 name: "TypeActuators");
 
             migrationBuilder.DropTable(
@@ -735,10 +939,22 @@ namespace backend.Migrations
                 name: "ParentParameters");
 
             migrationBuilder.DropTable(
+                name: "Schedules");
+
+            migrationBuilder.DropTable(
                 name: "MiniPcs");
 
             migrationBuilder.DropTable(
                 name: "ParentTypes");
+
+            migrationBuilder.DropTable(
+                name: "Disease");
+
+            migrationBuilder.DropTable(
+                name: "ScheduleIntervals");
+
+            migrationBuilder.DropTable(
+                name: "ScheduleTags");
 
             migrationBuilder.DropTable(
                 name: "IdentityIoTs");

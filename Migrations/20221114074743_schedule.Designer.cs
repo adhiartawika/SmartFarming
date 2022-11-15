@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Persistences;
 
@@ -10,9 +11,10 @@ using backend.Persistences;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221114074743_schedule")]
+    partial class schedule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -627,7 +629,7 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("ScheduleIntervalId")
+                    b.Property<int>("ScheduleIntervalId")
                         .HasColumnType("int");
 
                     b.Property<int>("ScheduleTagId")
@@ -704,6 +706,10 @@ namespace backend.Migrations
                     b.Property<byte[]>("Byte")
                         .IsRequired()
                         .HasColumnType("longblob");
+
+                    b.Property<string>("ExtensionType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1081,7 +1087,9 @@ namespace backend.Migrations
 
                     b.HasOne("backend.Model.AppEntity.ScheduleInterval", "ScheduleInterval")
                         .WithMany()
-                        .HasForeignKey("ScheduleIntervalId");
+                        .HasForeignKey("ScheduleIntervalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("backend.Model.AppEntity.ScheduleTag", "ScheduleTag")
                         .WithMany()

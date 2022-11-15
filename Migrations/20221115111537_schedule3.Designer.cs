@@ -11,8 +11,8 @@ using backend.Persistences;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20221023104504_m")]
-    partial class m
+    [Migration("20221115111537_schedule3")]
+    partial class schedule3
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -217,6 +217,21 @@ namespace backend.Migrations
                     b.HasIndex("SensorId");
 
                     b.ToTable("Datas");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.Disease", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Disease");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.IotStatus", b =>
@@ -594,6 +609,152 @@ namespace backend.Migrations
                     b.ToTable("Regions");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.Schedule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("DiseaseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LandId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("ScheduleIntervalId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScheduleTagId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartingDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiseaseId");
+
+                    b.HasIndex("LandId");
+
+                    b.HasIndex("ScheduleIntervalId");
+
+                    b.HasIndex("ScheduleTagId");
+
+                    b.ToTable("Schedules");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleInterval", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<byte>("IntervalType")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("WeekDays")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ScheduleIntervals");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("ScheduleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.ToTable("ScheduleLogs");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleLogImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("Byte")
+                        .IsRequired()
+                        .HasColumnType("longblob");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("ScheduleLogId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScheduleLogId");
+
+                    b.ToTable("ScheduleLogImages");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleOccurrence", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("ScheduleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.ToTable("ScheduleOccurrences");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleTag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ScheduleTags");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.Sensor", b =>
                 {
                     b.Property<int>("Id")
@@ -906,6 +1067,64 @@ namespace backend.Migrations
                     b.Navigation("Plant");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.Schedule", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.Disease", "Disease")
+                        .WithMany()
+                        .HasForeignKey("DiseaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.AppEntity.Land", "Land")
+                        .WithMany()
+                        .HasForeignKey("LandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.AppEntity.ScheduleInterval", "ScheduleInterval")
+                        .WithMany()
+                        .HasForeignKey("ScheduleIntervalId");
+
+                    b.HasOne("backend.Model.AppEntity.ScheduleTag", "ScheduleTag")
+                        .WithMany()
+                        .HasForeignKey("ScheduleTagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Disease");
+
+                    b.Navigation("Land");
+
+                    b.Navigation("ScheduleInterval");
+
+                    b.Navigation("ScheduleTag");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleLog", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.Schedule", null)
+                        .WithMany("ScheduleLogs")
+                        .HasForeignKey("ScheduleId");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleLogImage", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.ScheduleLog", null)
+                        .WithMany("Images")
+                        .HasForeignKey("ScheduleLogId");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleOccurrence", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.Schedule", "Schedule")
+                        .WithMany()
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Schedule");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.Sensor", b =>
                 {
                     b.HasOne("backend.Model.AppEntity.Mikrokontroller", "MikroController")
@@ -1003,6 +1222,16 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Model.AppEntity.Region", b =>
                 {
                     b.Navigation("MiniPcs");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.Schedule", b =>
+                {
+                    b.Navigation("ScheduleLogs");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleLog", b =>
+                {
+                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Sensor", b =>

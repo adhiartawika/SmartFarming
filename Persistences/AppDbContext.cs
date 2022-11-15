@@ -42,6 +42,14 @@ namespace backend.Persistences
         public DbSet<ParentParameter> ParentParameters {get;set;}
         public DbSet<ParentType> ParentTypes {get;set;}
 
+        public DbSet<Disease> Disease {get;set;}
+        public DbSet<Schedule> Schedules {get;set;}
+        public DbSet<ScheduleInterval> ScheduleIntervals {get;set;}
+        public DbSet<ScheduleLog> ScheduleLogs {get;set;}
+        public DbSet<ScheduleLogImage> ScheduleLogImages {get;set;}
+        public DbSet<ScheduleTag> ScheduleTags {get;set;}
+        public DbSet<ScheduleOccurrence> ScheduleOccurrences {get;set;}
+
         // public DbSet<NotificationType> NotificationTypes { get; set; }
         // public DbSet<NotificationContent> NotificationContents { get; set; }
 
@@ -94,6 +102,13 @@ namespace backend.Persistences
         public DbSet<UserDevice> UserDevices { get; set; }
         public DbSet<ApplicationUser> Users { get; set;}
         public DbSet<IdIoT> IdentityIoTs { get; set; }
+        public DbSet<Disease> Disease {get;set;}
+        public DbSet<Schedule> Schedules {get;set;}
+        public DbSet<ScheduleInterval> ScheduleIntervals {get;set;}
+        public DbSet<ScheduleLog> ScheduleLogs {get;set;}
+        public DbSet<ScheduleLogImage> ScheduleLogImages {get;set;}
+        public DbSet<ScheduleTag> ScheduleTags {get;set;}
+        public DbSet<ScheduleOccurrence> ScheduleOccurrences {get;set;}
 ///ubah get set
         // public DbSet<NotificationContent> NotificationContents { get; set; }
         // public DbSet<NotificationType> NotificationTypes { get; set; }
@@ -227,6 +242,22 @@ namespace backend.Persistences
             builder.Entity<Data>()
                     .Property(x => x.ValueParameter)
                     .HasColumnType("decimal(7,3)");
+
+            /* For Schedule Relation*/
+            builder.Entity<Schedule>()
+                .HasOne(d => d.Disease);
+            builder.Entity<Schedule>()
+                .HasOne(l => l.Land);
+            builder.Entity<Schedule>()
+                .HasOne(t => t.ScheduleTag);
+            builder.Entity<Schedule>()
+                .HasMany(g => g.ScheduleLogs);
+
+            builder.Entity<ScheduleLog>()
+                .HasMany(i => i.Images);
+
+            builder.Entity<ScheduleOccurrence>()
+                .HasOne(s => s.Schedule);
 
             base.OnModelCreating(builder);
         }

@@ -575,25 +575,55 @@ namespace backend.Seeders
             }
         }
     public static async Task SeedActuatorAsync(AppDbContext ctx)
+    {
+    if (!(ctx.Actuators.ToList().Count()>0))
         {
-        if (!(ctx.Actuators.ToList().Count()>0))
-            {
 
-                ctx.Actuators.AddRange(
-                    new Actuator
-                    {
-                        Id = 1,
-                        Name="DHT22",
-                        Description="Suhu Udara",
-                        MikrocontrollerId =1,
-                    }
-                    //namasensor [DHT22(2x Suhu Udara Sama Kelembapan Udaraa),DS18B20(suhu tanah),PHTanahSensor,KelembapanTanah]
-                ); ; ;
-                await ctx.SaveChangesAsync();
-            }
+            ctx.Actuators.AddRange(
+                new Actuator
+                {
+                    Id = 1,
+                    Name="DHT22",
+                    Description="Suhu Udara",
+                    MikrocontrollerId =1,
+                }
+                //namasensor [DHT22(2x Suhu Udara Sama Kelembapan Udaraa),DS18B20(suhu tanah),PHTanahSensor,KelembapanTanah]
+            ); ; ;
+            await ctx.SaveChangesAsync();
         }
-        //TODO Seed FuzzyInference Parameter
-        //TODO Seed FuzzyInference Output
-        //TODO Seed FuzzyCrisp Output
+    }
+
+    public static async Task SeedScheduleTagAsync(AppDbContext ctx){
+        if (!(ctx.ScheduleTags.ToList().Count>0))
+        {
+
+            ctx.ScheduleTags.AddRange(
+                new ScheduleTag
+                {
+                    Id = 1,
+                    Name ="Tag 1",
+                }
+            ); ; ;
+            await ctx.SaveChangesAsync();
+        }
+    }
+    public static async Task SeedDiseaseAsync(AppDbContext ctx){
+        if (!(ctx.Disease.ToList().Count>0))
+        {
+
+            ctx.Disease.AddRange(
+                new Disease
+                {
+                    Id = 1,
+                    Name ="Penyakit 1",
+                }
+            ); ; ;
+            await ctx.SaveChangesAsync();
+        }
+    }
+
+    //TODO Seed FuzzyInference Parameter
+    //TODO Seed FuzzyInference Output
+    //TODO Seed FuzzyCrisp Output
     }
 }
