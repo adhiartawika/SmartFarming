@@ -18,39 +18,33 @@ namespace backend.Controllers
 
     [HttpPost]
     public async Task<IActionResult> createSchedule([FromForm] CreateScheduleForm ScheduleForm){
-        if(DateTime.Compare(ScheduleForm.EndDate, ScheduleForm.StartingDate) < 0 )return BadRequest();
+        Console.WriteLine(ScheduleTagType.IsDefined(typeof(ScheduleTagType), ScheduleForm.Tag));
+        
+        if(ScheduleForm.EndDate == default(DateTime)) ScheduleForm.EndDate = ScheduleForm.StartingDate;
+        else if(DateTime.Compare(ScheduleForm.EndDate, ScheduleForm.StartingDate) < 0 ) return BadRequest();
         try{
             var land = this.context.Lands.Where(x => x.Id == ScheduleForm.LandId).FirstOrDefault();
-            var tag = this.context.ScheduleTags.Where(x => x.Id == ScheduleForm.ScheduleTagId).FirstOrDefault();
-            var disease = this.context.Disease.Where(x => x.Id == ScheduleForm.DiseaseId).FirstOrDefault();
-            var interval = Enum.IsDefined(typeof(IntervalType), ScheduleForm.IntervalType) ? new ScheduleInterval{
-                Count = ScheduleForm.Count,
-                IntervalType = (IntervalType)Enum.Parse(typeof(IntervalType),ScheduleForm.IntervalType) ,
-                WeekDays = ScheduleForm.WeekDays,
-                EndDate = ScheduleForm.EndDate
-                } : null;
+            var diseaseMonitor = this.context.DiseaseMonitor.Where(x => x.Id == ScheduleForm.DiseaseMonitorId).FirstOrDefault();
             var schedule = new Schedule{
                 Name = ScheduleForm.Name,
                 StartingDate = ScheduleForm.StartingDate,
+                EndDate = ScheduleForm.EndDate,
                 Note = ScheduleForm.Note,
-                Disease = disease,
-                ScheduleTag = tag,
+                Tag = (ScheduleTagType)Enum.Parse(typeof(ScheduleTagType), ScheduleForm.Tag),
+                DiseaseMonitor = diseaseMonitor,
                 Land = land,
-                ScheduleInterval = interval
             };
-
-            /* Get First Occurrence*/
-            this.context.ScheduleOccurrences.Add(new ScheduleOccurrence{
-                Date = schedule.StartingDate,
-                Schedule = schedule
-            });
-
-            if(interval != null){
-                this.context.ScheduleIntervals.Add(interval);
-                getOccurrence(schedule);
-            }
             this.context.Schedules.Add(schedule);
             await this.context.SaveChangesAsync();
+
+            /* Get Occurrence*/
+            this.context.ScheduleOccurrences.Add(new ScheduleOccurrence{
+                Date = schedule.StartingDate,
+                ScheduleId = schedule.Id
+            });
+            if(ScheduleForm.IntervalType != null) getOccurrence(schedule, ScheduleForm.IntervalType, ScheduleForm.Count);
+            await this.context.SaveChangesAsync();
+
             return new OkObjectResult(new AppResponse { message = "Berhasil menambahkan jadwal baru" });
         }
         catch (Exception ex)
@@ -68,9 +62,7 @@ namespace backend.Controllers
         var response = (await this.context.Schedules
             .Where(x => x.Id == id)
             .Include(x => x.Land)
-            .Include(x => x.Disease)
-            .Include(x => x.ScheduleTag)
-            // .Include(x => x.ScheduleInterval)
+            .Include(x => x.DiseaseMonitor)
             .Include(x => x.ScheduleLogs)
             .ThenInclude(Sg => Sg.Images)
             .ToListAsync());
@@ -80,34 +72,35 @@ namespace backend.Controllers
                     Id = r.Id,
                     Name = r.Name,
                     Land = r.Land.Name,
-                    tag = r.ScheduleTag.Name,
+                    Tag = r.Tag,
                     Note = r.Note,
-                    logs = r.ScheduleLogs,
+                    Logs = r.ScheduleLogs,
                 };
             }));
     }
 
     [HttpGet]
-    public async Task<ActionResult<Schedule>> ShowSchedules(int id){
+    public async Task<ActionResult> ShowSchedules(int id){
         var result = await this.context.Schedules
             .Include(x => x.Land)
-            .Include(x => x.ScheduleTag)
-            .Include(x => x.ScheduleInterval)
             .ToListAsync();
         if (result == null) return NotFound();
 
-        var response = new List<ShowSchedulesResponse>();
+        var schedule = new List<ShowSchedulesResponse>();
         foreach(Schedule sc in result){
-            response.Add(new ShowSchedulesResponse{
+            schedule.Add(new ShowSchedulesResponse{
                 Id = sc.Id,
                 Name = sc.Name,
                 StartingDate = sc.StartingDate,
-                EndDate = sc.ScheduleInterval == null ? sc.StartingDate :sc.ScheduleInterval.EndDate,
-                land = sc.Land.Name,
-                tag = sc.ScheduleTag.Name,
+                EndDate = sc.EndDate,
+                Land = sc.Land.Name,
+                Tag = sc.Tag,
             });
         }
-        return Ok(response);
+
+        var occurrence = await this.context.ScheduleOccurrences.ToListAsync();
+
+        return Ok(new { Schedule = schedule, occurrence = occurrence} );
     }
     
     [HttpPost]
@@ -141,19 +134,49 @@ namespace backend.Controllers
         return Ok(log);
         }
 
-    public async void getOccurrence(Schedule schedule){
-        /* Get occurrence type Day */
-        if(schedule.ScheduleInterval.IntervalType == IntervalType.Hari){
-            var temp = schedule.StartingDate.AddDays(schedule.ScheduleInterval.Count);
-            while(DateTime.Compare(temp, schedule.ScheduleInterval.EndDate) <= 0 ){
+    public async void getOccurrence(Schedule schedule, string intervalType, int count){
+        if(intervalType == "Hari"){
+            var temp = schedule.StartingDate.AddDays(count);
+            while(DateTime.Compare(temp, schedule.EndDate) <= 0 ){
                 this.context.ScheduleOccurrences.Add(new ScheduleOccurrence{
                     Date = temp,
-                    Schedule = schedule
+                    ScheduleId = schedule.Id
                 });
-                temp = temp.AddDays(schedule.ScheduleInterval.Count);
+                temp = temp.AddDays(count);
+            }
+        }
+        else if(intervalType == "Minggu"){
+            count *= 7;
+            var temp = schedule.StartingDate.AddDays(count);
+            while(DateTime.Compare(temp, schedule.EndDate) <= 0 ){
+                this.context.ScheduleOccurrences.Add(new ScheduleOccurrence{
+                    Date = temp,
+                    ScheduleId = schedule.Id
+                });
+                temp = temp.AddDays(count);
+            }
+        }
+        else if(intervalType == "Bulan"){
+            var temp = schedule.StartingDate.AddMonths(count);
+            while(DateTime.Compare(temp, schedule.EndDate) <= 0 ){
+                this.context.ScheduleOccurrences.Add(new ScheduleOccurrence{
+                    Date = temp,
+                    ScheduleId = schedule.Id
+                });
+                temp = temp.AddMonths(count);
+            }
+        }
+        // ? Tanya/Cek ada per tahun
+        else if(intervalType == "Tahun"){
+            var temp = schedule.StartingDate.AddYears(count);
+            while(DateTime.Compare(temp, schedule.EndDate) <= 0 ){
+                this.context.ScheduleOccurrences.Add(new ScheduleOccurrence{
+                    Date = temp,
+                    ScheduleId = schedule.Id
+                });
+                temp = temp.AddYears(count);
             }
         };
-        return;
     }
 
     }
@@ -178,29 +201,28 @@ namespace backend.Controllers
         [Required(ErrorMessage = "Catatan Jadwal harus diisi")]
         public string Note { get; set; }
         [Required(ErrorMessage = "Tag harus diisi")]
-        public int ScheduleTagId { get; set; }
-        public int DiseaseId { get; set; }
+        public string Tag { get; set; }
+        public int? DiseaseMonitorId { get; set; }
 
         // Interval
         public int Count { get; set; }
-        public string IntervalType { get; set; }
-        public int WeekDays { get; set; }
+        public string? IntervalType { get; set; }
         public DateTime EndDate { get; set; }
     }
     public class ShowSchedulesResponse{
         public int Id { get; set; }
         public string Name { get; set; }
         public DateTime StartingDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public string land { get; set; }
-        public string tag { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string Land { get; set; }
+        public ScheduleTagType Tag { get; set; }
     }
     public class ShowScheduleDetailResponse{
         public int Id { get; set; }
         public string Name { get; set; }
         public string Land { get; set; }
-        public string tag { get; set; }
+        public ScheduleTagType Tag { get; set; }
         public string Note { get; set; }
-        public ICollection<ScheduleLog> logs { get; set; }
+        public ICollection<ScheduleLog> Logs { get; set; }
     }
 }

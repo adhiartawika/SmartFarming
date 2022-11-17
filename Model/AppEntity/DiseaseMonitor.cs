@@ -1,8 +1,10 @@
 namespace backend.Model.AppEntity
 {
-    public class Disease
-    {        
+    // ! Ganti punya masnya aja
+    public class DiseaseMonitor
+    {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string Status { get; set; }
     }
 }

@@ -593,35 +593,6 @@ namespace backend.Seeders
         }
     }
 
-    public static async Task SeedScheduleTagAsync(AppDbContext ctx){
-        if (!(ctx.ScheduleTags.ToList().Count>0))
-        {
-
-            ctx.ScheduleTags.AddRange(
-                new ScheduleTag
-                {
-                    Id = 1,
-                    Name ="Tag 1",
-                }
-            ); ; ;
-            await ctx.SaveChangesAsync();
-        }
-    }
-    public static async Task SeedDiseaseAsync(AppDbContext ctx){
-        if (!(ctx.Disease.ToList().Count>0))
-        {
-
-            ctx.Disease.AddRange(
-                new Disease
-                {
-                    Id = 1,
-                    Name ="Penyakit 1",
-                }
-            ); ; ;
-            await ctx.SaveChangesAsync();
-        }
-    }
-
     //TODO Seed FuzzyInference Parameter
     //TODO Seed FuzzyInference Output
     //TODO Seed FuzzyCrisp Output

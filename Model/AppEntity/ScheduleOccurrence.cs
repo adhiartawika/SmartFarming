@@ -4,6 +4,6 @@ namespace backend.Model.AppEntity
     {        
         public int Id { get; set; }
         public DateTime Date { get; set; }
-        public Schedule Schedule { get; set; }
+        public int ScheduleId { get; set; }
     }
 }

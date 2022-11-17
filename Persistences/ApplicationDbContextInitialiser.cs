@@ -72,8 +72,6 @@ namespace backend.Persistences
             await AppDbContextSeeder.SeedSensorAsync(_context);
             await AppDbContextSeeder.SeedDataAsync(_context);
             await AppDbContextSeeder.SeedRoleAsync(_context);
-            await AppDbContextSeeder.SeedDiseaseAsync(_context);
-            await AppDbContextSeeder.SeedScheduleTagAsync(_context);
             //await AppIdentityDbContextSeed.SeedDefaultUserAsync(_userManager);
         }
     }

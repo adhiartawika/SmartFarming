@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Persistences;
 
@@ -10,9 +11,10 @@ using backend.Persistences;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221116170042_schedule4")]
+    partial class schedule4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -710,6 +712,8 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ScheduleId");
+
                     b.ToTable("ScheduleOccurrences");
                 });
 
@@ -1054,6 +1058,17 @@ namespace backend.Migrations
                     b.HasOne("backend.Model.AppEntity.ScheduleLog", null)
                         .WithMany("Images")
                         .HasForeignKey("ScheduleLogId");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleOccurrence", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.Schedule", "Schedule")
+                        .WithMany()
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Schedule");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Sensor", b =>
