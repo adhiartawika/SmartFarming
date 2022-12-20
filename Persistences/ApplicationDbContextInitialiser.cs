@@ -61,8 +61,9 @@ namespace backend.Persistences
         public async Task TrySeedAsync()
         {
             // Console.WriteLine("a");
+            await AppDbContextSeeder.SeedRoleAsync(_context);
+            await AppDbContextSeeder.SeedUserAdmin(_userManager);
             await AppDbContextSeeder.SeedParentTypeAsync(_context);
-            await AppDbContextSeeder.SeedActuatorTypeAsync(_context);
             await AppDbContextSeeder.SeedPlantAsync(_context);
             await AppDbContextSeeder.SeedLandAsync(_context);
             await AppDbContextSeeder.SeedRegionAsync(_context);
@@ -70,9 +71,8 @@ namespace backend.Persistences
             await AppDbContextSeeder.SeedMiniPcAsync(_context);
             await AppDbContextSeeder.SeedMicroAsync(_context);
             await AppDbContextSeeder.SeedSensorAsync(_context);
+            await AppDbContextSeeder.SeedActuatorTypeAsync(_context);
             await AppDbContextSeeder.SeedDataAsync(_context);
-            await AppDbContextSeeder.SeedRoleAsync(_context);
-            //await AppIdentityDbContextSeed.SeedDefaultUserAsync(_userManager);
         }
     }
 }

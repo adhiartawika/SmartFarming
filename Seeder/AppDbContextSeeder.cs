@@ -25,6 +25,24 @@ namespace backend.Seeders
         //     //     await ctx.SaveChangesAsync();
         //     // }
         // }
+    public static async Task SeedUserAdmin(UserManager<ApplicationUser> usermanager)
+    {
+            var checkUser = await usermanager.FindByEmailAsync("6025211006@mhs.its.ac.id");
+            if (checkUser == null)
+            {
+                var newUser = new ApplicationUser
+                {
+                    UserName = "striar",
+                    Name = "Sulaiman Triarjo",
+                    Email = "6025211006@mhs.its.ac.id",
+                    NormalizedEmail = "6025211006@mhs.its.ac.id".ToUpper(),
+                    NormalizedUserName = "striar".ToUpper(),
+                    EmailConfirmed = true
+                };
+                var result = await usermanager.CreateAsync(newUser, "qweasd");
+                var rl = await usermanager.AddToRoleAsync(newUser, "Super Admin");
+            }
+    }
     public static async Task SeedRoleAsync(AppDbContext ctx)
         {
             if (!(ctx.UserRoles.ToList().Count()>0))
