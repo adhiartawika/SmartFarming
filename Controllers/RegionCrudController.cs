@@ -3,23 +3,32 @@ using Microsoft.EntityFrameworkCore;
 using backend.Model.AppEntity;
 using backend.Persistences;
 using backend.Commons;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]/[action]")]
     public class RegionCrudController : ControllerBase
     {
         private readonly AppDbContext context;
-        public RegionCrudController(AppDbContext context)
+        private readonly ICurrentUserService currentUser;
+        private readonly IUtilityCurrentUserAces UserAcess;
+        public RegionCrudController(AppDbContext context, ICurrentUserService currentUser,IUtilityCurrentUserAces UserAcess)
         {
+            
             this.context = context;
+            this.currentUser = currentUser;
+            this.UserAcess = UserAcess;
         }
 
         [HttpGet]
         public async Task<IEnumerable<RegionsItemDto>> ShowRegion()
         {
-            return (await this.context.Regions.Where(x=>x.DeletedAt==null).Include(x => x.MiniPcs).ThenInclude(x => x.Mikrokontrollers).Include(x => x.Land).ToListAsync()).Select(x => new RegionsItemDto
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            return (await this.context.Regions.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false).Where(x=>x.DeletedAt==null).Include(x => x.MiniPcs).ThenInclude(x => x.Mikrokontrollers).Include(x => x.Land).ToListAsync()).Select(x => new RegionsItemDto
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -34,7 +43,8 @@ namespace backend.Controllers
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<RegionItemMinimalDto>> ShowRegionMinimal(int LandId)
         {
-            return (await context.Regions
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            return (await context.Regions.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
             // Include(x=>x.RegionPlant).ThenInclude(x=>x.Plant)
             .Include(x=>x.Plant)
             .Where(x=>x.DeletedAt==null).Where(x=>x.LandId==LandId).ToListAsync())
@@ -57,8 +67,9 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<RegionSearchResponse> Search([FromQuery] SearchRequest query)
         {
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
             query.Search = query.Search == null ? "" : query.Search.ToLower();
-            var q = this.context.Regions.Where(x=>x.DeletedAt==null)
+            var q = this.context.Regions.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false).Where(x=>x.DeletedAt==null)
             // .Include(x=>x.RegionPlant).ThenInclude(x=>x.Plant)
             .Include(x=>x.Plant)
             .Include(x => x.MiniPcs).ThenInclude(x => x.Mikrokontrollers)
@@ -91,38 +102,53 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<int> AddRegion([FromBody] CreateRegionDto model)
         {
-            var reg = new Region { 
-                    Name = model.Name, 
-                    RegionDescription = model.RegionDescription, 
-                    CordinateRegion = model.CordinateRegion, 
-                    LandId = model.LandId,
-                    PlantId=model.PlantId
-                    };
-            // reg.RegionPlant.Add(new RegionPlant{PlantId=model.PlantId});
-            var obj_baru = await this.context.Regions.AddAsync(reg);
+            if(this.currentUser.RoleId != 3){
+                var reg = new Region { 
+                        Name = model.Name, 
+                        RegionDescription = model.RegionDescription, 
+                        CordinateRegion = model.CordinateRegion, 
+                        LandId = model.LandId,
+                        PlantId=model.PlantId,
+                        CreatedById = this.currentUser.UserId 
+                        };
+                // reg.RegionPlant.Add(new RegionPlant{PlantId=model.PlantId});
+                var obj_baru = await this.context.Regions.AddAsync(reg);
 
-            await this.context.SaveChangesAsync();
-            int id = obj_baru.Entity.Id;
-            return id;
+                await this.context.SaveChangesAsync();
+                int id = obj_baru.Entity.Id;
+                return id;
+            }
+            return 0;
             // new RegionPlant{PlantId=model.PlantId,RegionId=obj_baru.Entity.Id} 
         }
         [HttpPut("{RegionId}")]
-        public async Task UpdateRegion(int RegionId, [FromBody] UpdateRegionDto model)
+        public async Task<IActionResult> UpdateRegion(int RegionId, [FromBody] UpdateRegionDto model)
         {
-            var result = await this.context.Regions.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==RegionId);
-            result.Name = model.Name;
-            result.RegionDescription = model.RegionDescription;
-            result.CordinateRegion = model.CordinateRegion;
-            // result.RegionPlant.Add(new RegionPlant{PlantId=model.PlantId});
-            result.PlantId=model.PlantId;
-            await this.context.SaveChangesAsync();
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            var CheckRegionId = this.context.Regions.Where(x=>x.DeletedAt==null).Where(x => arrayId.Contains(x.CreatedById.Value)).Select(x => x.Id == RegionId).FirstOrDefault();
+            if(this.currentUser.RoleId != 3 && CheckRegionId != false){
+                var result = await this.context.Regions.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==RegionId);
+                result.Name = model.Name;
+                result.RegionDescription = model.RegionDescription;
+                result.CordinateRegion = model.CordinateRegion;
+                result.PlantId=model.PlantId;
+                await this.context.SaveChangesAsync();
+                return new OkObjectResult(new AppResponse { message="sucess"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Akses Tidak Ditemukan"});
         }
         [HttpDelete("{RegionId}")]
-        public async Task DeleteRegion(int RegionId)
+        public async Task<IActionResult> DeleteRegion(int RegionId)
         {
-            var result = await this.context.Regions.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==RegionId);
-            this.context.Regions.Remove(result!);
-            await this.context.SaveChangesAsync();
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            var CheckRegionId = this.context.Regions.Where(x=>x.DeletedAt==null).Where(x => arrayId.Contains(x.CreatedById.Value)).Select(x => x.Id == RegionId).FirstOrDefault();
+            if(this.currentUser.RoleId != 3 && CheckRegionId != false){
+                var result = await this.context.Regions.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==RegionId);
+                this.context.Regions.Remove(result!);
+                await this.context.SaveChangesAsync();
+                return new OkObjectResult(new AppResponse { message="sucess"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Akses Tidak Ditemukan"});
         }
     }
 

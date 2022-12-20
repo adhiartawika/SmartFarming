@@ -14,8 +14,9 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using  Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using backend.Persistences;
+using backend.Model.AppEntity;
 
 namespace backend.Controllers
 {
@@ -29,14 +30,15 @@ namespace backend.Controllers
         private IMailHelperService _mailHelperService;
         private IMailTemplateHelperService _mailTemplateHelperService;
         private IConfiguration _config;
-
+        private ICurrentUserService currentUser;
         public AccountCrudController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IMailHelperService mailHelperService,
             IMailTemplateHelperService mailTemplateHelperService,
             IConfiguration config,
-            AppDbContext context
+            AppDbContext context,
+            ICurrentUserService currentUser
             )
         {
             _userManager = userManager;
@@ -45,27 +47,37 @@ namespace backend.Controllers
             _mailTemplateHelperService = mailTemplateHelperService;
             _config = config;
             this.context = context;
+            this.currentUser = currentUser;
         }
         
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] UserCreateForm userForm)
         {
-            if (userForm.Password != userForm.ConfirmPassword)
-            {
-                return new BadRequestObjectResult(new AppResponse { message = "Konfirmasi password tidak cocok." });
-            }
+            // if(this.context.Instituteds.Where(x => x.Nama == userForm.NameInstituted).Count() > 0){
+            //     var instituedscheme = this.context.Instituteds.Where(x => x.Nama == userForm.NameInstituted).FirstOrDefault();
+            //     instituedid = instituedscheme.Id;
+            // }else{
+            //     var instituednew = await this.context.Instituteds.AddAsync(new Instituted {
+            //         Nama = userForm.NameInstituted,
+            //         Alamat = userForm.InstitutedAddress
+            //     });
+            //     await this.context.SaveChangesAsync();
+            //     instituedid = instituednew.Entity.Id;
+            // }
             var user = new ApplicationUser
-            {
-                UserName = userForm.Email,
-                Name = userForm.Username,
-                Email = userForm.Email,
-                NormalizedEmail = userForm.Email.ToUpper(),
-                NormalizedUserName = userForm.Username.ToUpper(),
-            };
+                {
+                    UserName = userForm.Email,
+                    Name = userForm.Name,
+                    Email = userForm.Email,
+                    NormalizedEmail = userForm.Email.ToUpper(),
+                    NormalizedUserName = userForm.Name.ToUpper(),
+                    institutedId = userForm.InstituteId,
+                }; 
             var s = this.context.UserRoles.Where(x => x.Id == userForm.RoleId).FirstOrDefault();
             // var assignrole = await _userManager.AddToRoleAsync(user,rl.Name);
             var result = await _userManager.CreateAsync(user,userForm.Password);
             var rl = await _userManager.AddToRoleAsync(user,s.Name);
+
             if (result.Succeeded)
             {
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -83,6 +95,46 @@ namespace backend.Controllers
                 return new OkObjectResult(new AppResponse { message = "Pendaftaran berhasil. Silahkan cek email anda." });
             }
             return new BadRequestObjectResult(new AppResponse { message="Email sudah digunakan."});
+        }
+        
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost]
+        public async Task<IActionResult> CreateAdminInstitusi([FromForm] UserCreateForm userForm)
+        {
+            var obj_superadmin_inst = this.context.Users.Where(x => x.Id == this.currentUser.UserId).FirstOrDefault();
+            if(obj_superadmin_inst != null && this.currentUser.RoleId == 2){
+                var user = new ApplicationUser
+                    {
+                        UserName = userForm.Email,
+                        Name = userForm.Name,
+                        Email = userForm.Email,
+                        NormalizedEmail = userForm.Email.ToUpper(),
+                        NormalizedUserName = userForm.Name.ToUpper(),
+                        institutedId = obj_superadmin_inst.institutedId,
+                    }; 
+                var RoleUserId = this.context.Users.Where(x => x.Roles.Select(x => x.Id).FirstOrDefault() == 1).Select(x => x.Id).ToList();
+                if(userForm.RoleId != 1){
+                    var s = this.context.UserRoles.Where(x => x.Id == userForm.RoleId).FirstOrDefault();
+                    var result = await _userManager.CreateAsync(user,userForm.Password);
+                    var rl = await _userManager.AddToRoleAsync(user,s.Name);
+                    if (result.Succeeded){
+                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var url = Url.Action("Activate", "Account", new { Token = code, Email=user.Email }, Request.Scheme);
+                        var model = new NewUserEmailModel 
+                        { 
+                            Url= url,
+                            Email=user.Email,
+                            Name=user.Name
+                        };
+                        var htmlTemplate = await _mailTemplateHelperService.GetTemplateHtmlAsStringAsync<NewUserEmailModel>("UserRegistrationSuccess.html", model);
+                        _mailHelperService.SendMail(model.Email, "Pendaftaran berhasil!", htmlTemplate);
+                    return new OkObjectResult(new AppResponse { message = "Pendaftaran berhasil. Silahkan cek email anda." });
+                    }
+                    return new BadRequestObjectResult(new AppResponse { message="Email sudah digunakan."});
+                }
+                return new BadRequestObjectResult(new AppResponse { message="Role Tidak Dizinkan"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Role Tidak Dizinkan"});
         }
         [HttpGet]
         public async Task<IActionResult> Activate([FromQuery] string Token, [FromQuery] string Email)
@@ -110,20 +162,25 @@ namespace backend.Controllers
             }
         }
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpPut]
-        public async Task<IActionResult> Update([FromForm] UserUpdateForm userForm)
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> Update([FromForm] UserUpdateForm userForm, int Id)
         {
-            var user = await _userManager.FindByIdAsync(userForm.Id.ToString());
-            var checkDuplicateEmailUser = await _userManager.FindByEmailAsync(userForm.Email);
-            if (user != null && checkDuplicateEmailUser  ==null)
-            {
-                user.UserName = userForm.Username;
-                
-                var result = await _userManager.UpdateAsync(user);
-
-                if (result.Succeeded)
-                {
-                    if (user.Email != userForm.Email)
+            var user = await _userManager.FindByIdAsync(Id.ToString());
+            Console.WriteLine(user);
+            if (user != null)
+            {   
+                Console.WriteLine("masukk");
+                var RoleUserId = this.context.Users.Where(x => x.Roles.Select(x => x.Id).FirstOrDefault() == 1).Select(x => x.Id).ToList();
+                Console.WriteLine(RoleUserId.Contains(this.currentUser.UserId.Value));
+                if(RoleUserId.Contains(this.currentUser.UserId.Value) != false && userForm.RoleId == 1){
+                    Console.WriteLine("mas");
+                    user.Name = userForm.Name;
+                    var s = this.context.UserRoles.Where(x => x.Id == userForm.RoleId).FirstOrDefault();
+                    var result = await _userManager.UpdateAsync(user);
+                    var rlname = await _userManager.GetRolesAsync(user);
+                    var rlremove = await _userManager.RemoveFromRolesAsync(user,rlname);
+                    var rl = await _userManager.AddToRoleAsync(user,s.Name);
+                    if (result.Succeeded)
                     {
                         var token = await _userManager.GenerateChangeEmailTokenAsync(user, userForm.Email);
                         var resultChangeEmail = await _userManager.ChangeEmailAsync(user, userForm.Email, token);
@@ -133,7 +190,24 @@ namespace backend.Controllers
                         }
                         return new BadRequestObjectResult(new AppResponse { message = "Perubahan email gagal." });
                     }
-                    return new OkObjectResult(new AppResponse { message = "Perubahan data berhasil." });
+                }else if(RoleUserId.Contains(this.currentUser.UserId.Value) == false && userForm.RoleId != 1  || RoleUserId.Contains(this.currentUser.UserId.Value) == true && userForm.RoleId != 1 ){
+                    Console.WriteLine("masa");
+                    user.Name = userForm.Name;
+                    var s = this.context.UserRoles.Where(x => x.Id == userForm.RoleId).FirstOrDefault();
+                    var result = await _userManager.UpdateAsync(user);
+                    var rlname = await _userManager.GetRolesAsync(user);
+                    var rlremove = await _userManager.RemoveFromRolesAsync(user,rlname);
+                    var rl = await _userManager.AddToRoleAsync(user,s.Name);
+                    if (result.Succeeded)
+                    {
+                        var token = await _userManager.GenerateChangeEmailTokenAsync(user, userForm.Email);
+                        var resultChangeEmail = await _userManager.ChangeEmailAsync(user, userForm.Email, token);
+                        if (resultChangeEmail.Succeeded)
+                        {
+                            return new OkObjectResult(new AppResponse { message = "Perubahan data berhasil." });
+                        }
+                        return new BadRequestObjectResult(new AppResponse { message = "Perubahan email gagal." });
+                    }
                 }
             }
             return new BadRequestObjectResult(new AppResponse { message = "Email sudah digunakan." });
@@ -145,7 +219,6 @@ namespace backend.Controllers
             var user = await _userManager.FindByIdAsync(userForm.Id.ToString());
             if (user != null)
             {
-               
                 var result = await _userManager.ChangePasswordAsync(user, userForm.OldPassword,userForm.NewPassword);
 
                 if (result.Succeeded)
@@ -221,13 +294,11 @@ namespace backend.Controllers
         public async Task<IActionResult> Login([FromForm] UserLoginForm userForm)
         {
             var user = await _userManager.FindByNameAsync(userForm.Email);
-
             if (user != null)
             {
                 var result = await _signInManager.CheckPasswordSignInAsync(user, userForm.Password, false);
                 var ss = await _userManager.GetRolesAsync(user);
                 var roleid = this.context.UserRoles.Where(x => ss.Contains(x.RoleName)).FirstOrDefault();
-
                 if (result.Succeeded)
                 {
                     //var t = await _userManager.CreateSecurityTokenAsync(user);
@@ -235,8 +306,8 @@ namespace backend.Controllers
                     {
                         new Claim(JwtRegisteredClaimNames.Sub,user.Id.ToString()),
                         new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                        new Claim(JwtRegisteredClaimNames.GivenName, user.Name),
-                        new Claim("Role",roleid.Id.ToString())
+                        new Claim("name",user.Name),
+                        new Claim("role",roleid.Id.ToString())
                     };
                     var secret = _config["JwtSettings:SymKey"];
                     var secretByte = Encoding.UTF8.GetBytes(secret);
@@ -262,18 +333,25 @@ namespace backend.Controllers
         public string Email { get; set; }
         
     }
+    public class InstitutedDtoItem{
+        public int Id {get;set;}
+        public string Name {get;set;}
+        public string Alamat {get;set;}
+    }
     public class UserCreateForm: UserForm
     {
-        public string Username { get; set; }
+        public string Name { get; set; }
         public string Password { get; set; }
-        public string ConfirmPassword { get; set; }
 
+        public string? NameInstituted {get;set;}
+        public string? InstitutedAddress {get;set;}
         public int RoleId {get;set;}
+        public int InstituteId {get;set;}
     }
     public class UserUpdateForm : UserForm
     {
-        public int Id { get; set; }
-        public string Username { get; set; }
+        public string Name { get; set; }
+        public int RoleId {get;set;}
 
     }
     public class UserOTPPassword:UserForm
@@ -315,5 +393,17 @@ namespace backend.Controllers
     public class LoginResponse : AppResponse
     {
         public string accessToken { get; set; }
+    }
+
+    public class AccountItemDto{
+
+        public int Id {get;set;}
+        public string Name {get;set;}
+        public int RoleId {get;set;}
+        public string Email {get;set;}
+    }
+    public class AccountSearchResponse : SearchResponse<AccountItemDto>
+    {
+
     }
 }

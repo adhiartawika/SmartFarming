@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace backend.Migrations
 {
-    public partial class m : Migration
+    public partial class _2s : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -27,7 +27,7 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Secret = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -41,12 +41,28 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Instituteds",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Nama = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Alamat = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Instituteds", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Lands",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    UserId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Code = table.Column<string>(type: "longtext", nullable: false)
@@ -56,7 +72,7 @@ namespace backend.Migrations
                     Photo = table.Column<byte[]>(type: "longblob", nullable: true),
                     CordinateLand = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -66,6 +82,21 @@ namespace backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Lands", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "MonitorStatuses",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MonitorStatuses", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -98,7 +129,7 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -108,6 +139,38 @@ namespace backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Plants", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "PlantViruses",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Nama = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlantViruses", x => x.id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ScheduleOccurrences",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ScheduleId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScheduleOccurrences", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -160,6 +223,7 @@ namespace backend.Migrations
                     Otp = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     OtpExpired = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    institutedId = table.Column<int>(type: "int", nullable: true),
                     UserName = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedUserName = table.Column<string>(type: "longtext", nullable: true)
@@ -186,6 +250,11 @@ namespace backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_Instituteds_institutedId",
+                        column: x => x.institutedId,
+                        principalTable: "Instituteds",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -226,13 +295,7 @@ namespace backend.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     PlantId = table.Column<int>(type: "int", nullable: false),
-                    ParentTypesId = table.Column<int>(type: "int", nullable: false),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    LastModifiedBy = table.Column<int>(type: "int", nullable: true),
-                    LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    DeletedBy = table.Column<int>(type: "int", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                    ParentTypesId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -266,7 +329,7 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     LandId = table.Column<int>(type: "int", nullable: false),
                     PlantId = table.Column<int>(type: "int", nullable: false),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -329,13 +392,7 @@ namespace backend.Migrations
                     MaxValue = table.Column<double>(type: "double", nullable: false),
                     Color = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ParentTypeId = table.Column<int>(type: "int", nullable: true),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    LastModifiedBy = table.Column<int>(type: "int", nullable: true),
-                    LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    DeletedBy = table.Column<int>(type: "int", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                    ParentTypeId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -370,7 +427,7 @@ namespace backend.Migrations
                     Code = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IdentityId = table.Column<int>(type: "int", nullable: false),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -396,6 +453,48 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "VirusMonitors",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    VirusId = table.Column<int>(type: "int", nullable: false),
+                    RegionId = table.Column<int>(type: "int", nullable: false),
+                    MonitorStatusId = table.Column<int>(type: "int", nullable: false),
+                    ImageDisease = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    LastModifiedBy = table.Column<int>(type: "int", nullable: true),
+                    LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    DeletedBy = table.Column<int>(type: "int", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VirusMonitors", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_VirusMonitors_MonitorStatuses_MonitorStatusId",
+                        column: x => x.MonitorStatusId,
+                        principalTable: "MonitorStatuses",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VirusMonitors_PlantViruses_VirusId",
+                        column: x => x.VirusId,
+                        principalTable: "PlantViruses",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VirusMonitors_Regions_RegionId",
+                        column: x => x.RegionId,
+                        principalTable: "Regions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Mikrokontrollers",
                 columns: table => new
                 {
@@ -406,7 +505,7 @@ namespace backend.Migrations
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     MiniPcId = table.Column<int>(type: "int", nullable: false),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -426,6 +525,81 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "DiseaseImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Path = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    VirusMonitorId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DiseaseImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DiseaseImages_VirusMonitors_VirusMonitorId",
+                        column: x => x.VirusMonitorId,
+                        principalTable: "VirusMonitors",
+                        principalColumn: "id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "LanLatDiseases",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    latitude = table.Column<double>(type: "double", nullable: false),
+                    longitude = table.Column<double>(type: "double", nullable: false),
+                    VirusMonitorId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LanLatDiseases", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LanLatDiseases_VirusMonitors_VirusMonitorId",
+                        column: x => x.VirusMonitorId,
+                        principalTable: "VirusMonitors",
+                        principalColumn: "id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Schedules",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    StartingDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Note = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Tag = table.Column<byte>(type: "tinyint unsigned", nullable: false),
+                    LandId = table.Column<int>(type: "int", nullable: false),
+                    DiseaseMonitorid = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Schedules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Schedules_Lands_LandId",
+                        column: x => x.LandId,
+                        principalTable: "Lands",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Schedules_VirusMonitors_DiseaseMonitorid",
+                        column: x => x.DiseaseMonitorid,
+                        principalTable: "VirusMonitors",
+                        principalColumn: "id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Actuators",
                 columns: table => new
                 {
@@ -437,7 +611,7 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     MikrocontrollerId = table.Column<int>(type: "int", nullable: true),
                     ActuatorTypeId = table.Column<int>(type: "int", nullable: false),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -501,7 +675,7 @@ namespace backend.Migrations
                     MikrocontrollerId = table.Column<int>(type: "int", nullable: true),
                     ParentTypeId = table.Column<int>(type: "int", nullable: false),
                     ParentParamId = table.Column<int>(type: "int", nullable: false),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -532,6 +706,28 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ScheduleLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Timestamp = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Description = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ScheduleId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScheduleLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ScheduleLogs_Schedules_ScheduleId",
+                        column: x => x.ScheduleId,
+                        principalTable: "Schedules",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "ActuatorStatuses",
                 columns: table => new
                 {
@@ -539,7 +735,7 @@ namespace backend.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     ActuatorId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastModifiedBy = table.Column<int>(type: "int", nullable: true),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -587,6 +783,28 @@ namespace backend.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.CreateTable(
+                name: "ScheduleLogImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Byte = table.Column<byte[]>(type: "longblob", nullable: false),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ScheduleLogId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScheduleLogImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ScheduleLogImages_ScheduleLogs_ScheduleLogId",
+                        column: x => x.ScheduleLogId,
+                        principalTable: "ScheduleLogs",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Actuators_ActuatorTypeId",
                 table: "Actuators",
@@ -613,6 +831,11 @@ namespace backend.Migrations
                 column: "SensorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DiseaseImages_VirusMonitorId",
+                table: "DiseaseImages",
+                column: "VirusMonitorId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_IdentityUserRole<int>_UserId",
                 table: "IdentityUserRole<int>",
                 column: "UserId");
@@ -626,6 +849,11 @@ namespace backend.Migrations
                 name: "IX_IotStatus_MiniPcId",
                 table: "IotStatus",
                 column: "MiniPcId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LanLatDiseases_VirusMonitorId",
+                table: "LanLatDiseases",
+                column: "VirusMonitorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Mikrokontrollers_MiniPcId",
@@ -673,6 +901,26 @@ namespace backend.Migrations
                 column: "PlantId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ScheduleLogImages_ScheduleLogId",
+                table: "ScheduleLogImages",
+                column: "ScheduleLogId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScheduleLogs_ScheduleId",
+                table: "ScheduleLogs",
+                column: "ScheduleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_DiseaseMonitorid",
+                table: "Schedules",
+                column: "DiseaseMonitorid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_LandId",
+                table: "Schedules",
+                column: "LandId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sensors_MikrocontrollerId",
                 table: "Sensors",
                 column: "MikrocontrollerId");
@@ -691,6 +939,26 @@ namespace backend.Migrations
                 name: "IX_UserDevices_LandId",
                 table: "UserDevices",
                 column: "LandId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_institutedId",
+                table: "Users",
+                column: "institutedId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VirusMonitors_MonitorStatusId",
+                table: "VirusMonitors",
+                column: "MonitorStatusId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VirusMonitors_RegionId",
+                table: "VirusMonitors",
+                column: "RegionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VirusMonitors_VirusId",
+                table: "VirusMonitors",
+                column: "VirusId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -702,13 +970,25 @@ namespace backend.Migrations
                 name: "Datas");
 
             migrationBuilder.DropTable(
+                name: "DiseaseImages");
+
+            migrationBuilder.DropTable(
                 name: "IdentityUserRole<int>");
 
             migrationBuilder.DropTable(
                 name: "IotStatus");
 
             migrationBuilder.DropTable(
+                name: "LanLatDiseases");
+
+            migrationBuilder.DropTable(
                 name: "Parameters");
+
+            migrationBuilder.DropTable(
+                name: "ScheduleLogImages");
+
+            migrationBuilder.DropTable(
+                name: "ScheduleOccurrences");
 
             migrationBuilder.DropTable(
                 name: "UserDevices");
@@ -726,6 +1006,9 @@ namespace backend.Migrations
                 name: "Users");
 
             migrationBuilder.DropTable(
+                name: "ScheduleLogs");
+
+            migrationBuilder.DropTable(
                 name: "TypeActuators");
 
             migrationBuilder.DropTable(
@@ -735,13 +1018,28 @@ namespace backend.Migrations
                 name: "ParentParameters");
 
             migrationBuilder.DropTable(
+                name: "Instituteds");
+
+            migrationBuilder.DropTable(
+                name: "Schedules");
+
+            migrationBuilder.DropTable(
                 name: "MiniPcs");
 
             migrationBuilder.DropTable(
                 name: "ParentTypes");
 
             migrationBuilder.DropTable(
+                name: "VirusMonitors");
+
+            migrationBuilder.DropTable(
                 name: "IdentityIoTs");
+
+            migrationBuilder.DropTable(
+                name: "MonitorStatuses");
+
+            migrationBuilder.DropTable(
+                name: "PlantViruses");
 
             migrationBuilder.DropTable(
                 name: "Regions");

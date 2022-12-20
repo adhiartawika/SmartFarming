@@ -8,6 +8,7 @@ using backend.Model.IdEntity;
 using backend.Identity;
 using backend.Model.AppEntity;
 using  Microsoft.AspNetCore.Identity;
+using backend.Commons;
 
 namespace backend.Seeders
 {
@@ -25,11 +26,36 @@ namespace backend.Seeders
         //     //     await ctx.SaveChangesAsync();
         //     // }
         // }
+    public static async Task SeedInstitusiAsync (AppDbContext ctx){
+        if(!(ctx.Instituteds.ToList().Count()>0))
+        {
+            ctx.Instituteds.AddRange(
+                new Instituted
+                {
+                    Id = 1,
+                    Nama = "Intituted Technology November",
+                    Alamat = "Surabaya"
+                },
+                new Instituted
+                {
+                    Id = 2,
+                    Nama = "Universitas Udayana",
+                    Alamat = "Bali"
+                },
+                new Instituted
+                { 
+                    Id = 3,
+                    Nama = "Universitas Indonesia",
+                    Alamat = "jakarta"
+                }
+            ); ; ;
+            await ctx.SaveChangesAsync();
+        }
+    }
     public static async Task SeedRoleAsync(AppDbContext ctx)
         {
             if (!(ctx.UserRoles.ToList().Count()>0))
             {
-
                 ctx.UserRoles.AddRange(
                     new UserRole
                     {
@@ -54,6 +80,111 @@ namespace backend.Seeders
                     }
                 ); ; ;
                 await ctx.SaveChangesAsync();
+            }
+            // if ((ctx.UserRoles.Select(x => x.Id == 1 ).FirstOrDefault() == null))
+            // {
+            //     ctx.UserRoles.AddRange(
+            //         new UserRole
+            //         {
+            //             Id = 1,
+            //             RoleName = "Super Admin",
+            //             Name = "Super Admin",
+            //             NormalizedName = "Super Admin"
+            //         }
+            //     ); ; ;
+            //     await ctx.SaveChangesAsync();
+
+            // }
+            // if ((ctx.UserRoles.Select(x => x.Id == 2 ).FirstOrDefault() == null))
+            // {
+
+            //     ctx.UserRoles.AddRange(
+            //         new UserRole
+            //         {
+            //             Id = 2,
+            //             RoleName = "Admin",
+            //             Name = "Admin",
+            //             NormalizedName = "Admin"
+            //         }
+            //     ); ; ;
+            //     await ctx.SaveChangesAsync();
+            // }
+            // if ((ctx.UserRoles.Select(x => x.Id == 3).FirstOrDefault() == null))
+            // {
+
+            //     ctx.UserRoles.AddRange(
+            //         new UserRole
+            //         {
+            //             Id = 3,
+            //             RoleName = "User",
+            //             Name = "User",
+            //             NormalizedName = "User"
+            //         }
+            //     ); ; ;
+            //     await ctx.SaveChangesAsync();
+            // }
+        }
+        public static async Task SeedDefaultUserAsync(UserManager<ApplicationUser> userManager)
+        {
+            var defaultUser = new ApplicationUser { 
+                Id = 1,
+                UserName = "user@app.com",
+                Email= "user@app.com",
+                Name="Sulaiman",institutedId = 1
+            };
+
+            if (userManager.Users.All(u => u.UserName != defaultUser.UserName))
+            {
+                await userManager.CreateAsync(defaultUser, "qweasd");
+                var user= await userManager.FindByEmailAsync(defaultUser.Email);
+                var rl = await userManager.AddToRoleAsync(user,"Super Admin");
+                var tokenemail = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                await userManager.ConfirmEmailAsync(user, tokenemail);
+            }
+            var defaultuser2 = new ApplicationUser { 
+                Id = 2,
+                UserName = "adhi@app.com",
+                Email= "adhi@app.com",
+                Name="adhiarta",institutedId = 2
+            };
+
+            if (userManager.Users.Any(u => u.UserName != defaultuser2.UserName))
+            {
+                await userManager.CreateAsync(defaultuser2, "qweasd");
+                var user = await userManager.FindByEmailAsync(defaultuser2.Email);
+                var rl = await userManager.AddToRoleAsync(user,"Admin");
+                var tokenemail = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                await userManager.ConfirmEmailAsync(user, tokenemail);
+            }
+            var defaultuser3 = new ApplicationUser { 
+                Id = 3,
+                UserName = "wika@app.com",
+                Email= "wika@app.com",
+                Name="wika",institutedId = 2
+            };
+
+            if (userManager.Users.Any(u => u.UserName != defaultuser3.UserName))
+            {
+                await userManager.CreateAsync(defaultuser3, "qweasd");
+                var user = await userManager.FindByEmailAsync(defaultuser3.Email);
+                var rl = await userManager.AddToRoleAsync(user,"User");
+                var tokenemail = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                await userManager.ConfirmEmailAsync(user, tokenemail);
+            }
+            var defaultuser4 = new ApplicationUser { 
+                Id = 4,
+                UserName = "jay@app.com",
+                Email= "jay@app.com",
+                Name="jay",institutedId = 3
+            };
+
+            if (userManager.Users.Any(u => u.UserName != defaultuser4.UserName))
+            {
+                await userManager.CreateAsync(defaultuser4, "qweasd");
+                var user = await userManager.FindByEmailAsync(defaultuser4.Email);
+                var rl = await userManager.AddToRoleAsync(user,"Admin");
+                var tokenemail = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                await userManager.ConfirmEmailAsync(user, tokenemail);
             }
         }
         public static async Task SeedParentTypeAsync(AppDbContext ctx)
@@ -100,7 +231,6 @@ namespace backend.Seeders
         {
             if (!(ctx.TypeActuators.ToList().Count()>0))
             {
-
                 ctx.TypeActuators.AddRange(
                     new TypeActuators
                     {
@@ -310,7 +440,8 @@ namespace backend.Seeders
                         Name ="Sorghum Vulgare",
                         LatinName ="Sorghum technicum",
                         Description ="is an annual herbaceous plant belonging to the family of grasses",
-                        ParentParameters = pn
+                        ParentParameters = pn,
+                        CreatedById = 2,
                     },
                     new Plant
                     {
@@ -318,7 +449,8 @@ namespace backend.Seeders
                         Name ="Sorghum Serena",
                         LatinName ="Sorghum technicum",
                         Description ="is an annual herbaceous plant belonging to the family of grasses",
-                        ParentParameters = pn2
+                        ParentParameters = pn2,
+                        CreatedById = 2,
                     },
                     new Plant
                     {
@@ -326,7 +458,8 @@ namespace backend.Seeders
                         Name ="Sorghum bicolor",
                         LatinName ="Sorghum technicum",
                         Description ="is an annual herbaceous plant belonging to the family of grasses",
-                        ParentParameters = pn3
+                        ParentParameters = pn3,
+                        CreatedById = 2,
                     },
                     new Plant
                     {
@@ -334,7 +467,8 @@ namespace backend.Seeders
                         Name ="Sorghum amplum",
                         LatinName ="Sorghum technicum",
                         Description ="is an annual herbaceous plant belonging to the family of grasses",
-                        ParentParameters = pn4
+                        ParentParameters = pn4,
+                        CreatedById = 2,
                     },
                     new Plant
                     {
@@ -342,7 +476,8 @@ namespace backend.Seeders
                         Name ="Sorghum bulbosum",
                         LatinName ="Sorghum technicum",
                         Description ="is an annual herbaceous plant belonging to the family of grasses",
-                        ParentParameters = pn5
+                        ParentParameters = pn5,
+                        CreatedById = 2,
                     }
                 ); ; ;
                 await ctx.SaveChangesAsync();
@@ -360,7 +495,8 @@ namespace backend.Seeders
                         Name ="ITS Smart Farm",
                         Code="Lahan 1",
                         Address="Dusun Klampisan RT 1 RW 1. Desa Wirobiting. Kecamatan Prambon. Kabupaten Sidoarjo. Jawa Timur. 61264",
-                        CordinateLand = "x:1 y:2"
+                        CordinateLand = "x:1 y:2",
+                        CreatedById = 2, 
                     }
                 ); ; ;
                 await ctx.SaveChangesAsync();
@@ -381,6 +517,7 @@ namespace backend.Seeders
                         CordinateRegion = "x:1 y:1",
                         LandId = 1,
                         PlantId = 1,
+                        CreatedById = 2,
                     },
                     new Region
                     {   
@@ -390,6 +527,7 @@ namespace backend.Seeders
                         CordinateRegion = "x:1 y:1",
                         LandId = 1,
                         PlantId = 2,
+                        CreatedById = 3,
                     }
                 ); ; ;
                 await ctx.SaveChangesAsync();
@@ -431,7 +569,8 @@ namespace backend.Seeders
                         RegionId=1,
                         Code="A012DF",
                         Secret="onetoomany",
-                        IdentityId =1
+                        IdentityId =1,
+                        CreatedById = 2,
                     },
                     new MiniPc
                     {
@@ -441,7 +580,8 @@ namespace backend.Seeders
                         RegionId=2,
                         Code="A013DF",
                         Secret="onetoomany",
-                        IdentityId =2
+                        IdentityId =2,
+                        CreatedById = 2,
                     }
                 ); ; ;
                 await ctx.SaveChangesAsync();
@@ -458,14 +598,16 @@ namespace backend.Seeders
                             Id = 1,
                             Name="ESP 1",
                             Description="Microkontroller",
-                            MiniPcId = 1
+                            MiniPcId = 1,
+                            CreatedById = 2,
                     },
                     new Mikrokontroller
                     {
                             Id = 2,
                             Name="ESP 2",
                             Description="Microkontroller",
-                            MiniPcId = 2
+                            MiniPcId = 2,
+                            CreatedById = 2,
                     }
                 ); ; ;
                 await ctx.SaveChangesAsync();
@@ -484,7 +626,8 @@ namespace backend.Seeders
                         Description="Suhu Udara",
                         ParentTypeId=5,//cocokin parentype static dengan sensor
                         MikrocontrollerId =1,
-                        ParentParamId=5
+                        ParentParamId=5,
+                        CreatedById = 2,
                     },
                     new Sensor
                     {
@@ -493,7 +636,8 @@ namespace backend.Seeders
                         Description="Kelembapan Udara",
                         ParentTypeId=3,//cocokin parentype static dengan sensor
                         MikrocontrollerId=1,
-                        ParentParamId=3
+                        ParentParamId=3,
+                        CreatedById = 2,
                     },
                     new Sensor
                     {
@@ -502,7 +646,8 @@ namespace backend.Seeders
                         Description="Suhu Tanah",
                         ParentTypeId=4,//cocokin parentype static dengan sensor
                         MikrocontrollerId =1,
-                        ParentParamId=4
+                        ParentParamId=4,
+                        CreatedById = 2,
                     },
                     new Sensor
                     {
@@ -511,7 +656,8 @@ namespace backend.Seeders
                         Description="Sensor Ph Tanah",
                         ParentTypeId=1,//cocokin parentype static dengan sensor
                         MikrocontrollerId =1,
-                        ParentParamId=1
+                        ParentParamId=1,
+                        CreatedById = 2,
                     },
                     new Sensor
                     {
@@ -520,7 +666,8 @@ namespace backend.Seeders
                         Description="Sensor Kelembapan Tanah",
                         ParentTypeId=2,//cocokin parentype static dengan sensor
                         MikrocontrollerId =1,
-                        ParentParamId=2
+                        ParentParamId=2,
+                        CreatedById = 2,
                     }
                     //namasensor [DHT22(2x Suhu Udara Sama Kelembapan Udaraa),DS18B20(suhu tanah),PHTanahSensor,KelembapanTanah]
                 ); ; ;
@@ -578,7 +725,6 @@ namespace backend.Seeders
         {
         if (!(ctx.Actuators.ToList().Count()>0))
             {
-
                 ctx.Actuators.AddRange(
                     new Actuator
                     {
@@ -586,6 +732,8 @@ namespace backend.Seeders
                         Name="DHT22",
                         Description="Suhu Udara",
                         MikrocontrollerId =1,
+                        ActuatorTypeId = 1,
+                        CreatedById = 2,
                     }
                     //namasensor [DHT22(2x Suhu Udara Sama Kelembapan Udaraa),DS18B20(suhu tanah),PHTanahSensor,KelembapanTanah]
                 ); ; ;
@@ -595,5 +743,49 @@ namespace backend.Seeders
         //TODO Seed FuzzyInference Parameter
         //TODO Seed FuzzyInference Output
         //TODO Seed FuzzyCrisp Output
+        public static async Task SeedMonitorStatusAsync(AppDbContext ctx)
+        {
+        if (!(ctx.MonitorStatuses.ToList().Count()>0)){
+
+                ctx.MonitorStatuses.AddRange( 
+                    new MonitorStatus{
+                        id = 1,
+                        Name = "Terpantau"
+                    },
+                    new MonitorStatus{
+                        id = 2,
+                        Name = "Perawatan"
+                    },
+                    new MonitorStatus{
+                        id = 3,
+                        Name = "Sudah Sembuh"
+                    }
+                );
+                 await ctx.SaveChangesAsync();
+            }
+        }
+        public static async Task SeedDiseaseAsync(AppDbContext ctx)
+        {
+        if (!(ctx.PlantViruses.ToList().Count()>0))
+            {
+                var SeederDisease1 = new PlantVirus
+                {
+                    id = 1,
+                    Nama = "Powdery Mildew",
+                    Description = "Fungal leaf spot disease can be found both indoors on houseplants, and outdoors in the landscape. This occurs during warm, wet conditions",
+                };
+                // var special = Guid.NewGuid().ToString();
+                // var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"Utility\Images", "powder.jpg");
+                // using (MemoryStream ms = new MemoryStream())
+                // using (FileStream file = new FileStream(filePath, FileMode.Open, FileAccess.Read)) {
+                //     byte[] bytes = new byte[file.Length];
+                //     file.Read(bytes, 0, (int)file.Length);
+                //     ms.Write(bytes, 0, (int)file.Length);
+                //     SeederDisease1.Photo = ms.ToArray();
+                // }
+                ctx.PlantViruses.AddAsync(SeederDisease1);
+                await ctx.SaveChangesAsync();
+            }
+        }
     }
 }

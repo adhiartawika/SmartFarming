@@ -6,22 +6,29 @@ using Microsoft.EntityFrameworkCore;
 using backend.Model.AppEntity;
 using backend.Persistences;
 using backend.Commons;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    
     [Route("api/[controller]/[action]")]
     public class SensorCrudController:ControllerBase
     {
         private readonly AppDbContext context;
-
-        public SensorCrudController(AppDbContext context){
+        private readonly ICurrentUserService currentUser;
+        private readonly IUtilityCurrentUserAces UserAcess;
+        public SensorCrudController(AppDbContext context,ICurrentUserService currentUser,IUtilityCurrentUserAces UserAcess){
             this.context = context;
+            this.currentUser = currentUser;
+            this.UserAcess = UserAcess;
         }
 
         [HttpGet]
         public IEnumerable<SensorType> GetSensorTypes(){
-            // return (await this.context.get)
+            // return (await this.context.get)            
             List<SensorType> types = new List<SensorType>();
             foreach(var j in this.context.ParentTypes){
                 SensorType temp = new SensorType{
@@ -46,21 +53,22 @@ namespace backend.Controllers
             return types;
         }
 
-        [HttpGet]
-        public async Task<IEnumerable<SensorItemDto>> ShowSensor(){
-            return (await this.context.Sensors.Where(x=>x.DeletedAt==null).Include(x => x.MikroController).ToListAsync()).Select(y => new SensorItemDto{
-                Id = y.Id,
-                Name = y.Name,
-                Description = y.Description,
-                MicroId = y.MikroController.Id,
-                MicroName = y.MikroController.Name
-            });
-        }
+        // [HttpGet]
+        // public async Task<IEnumerable<SensorItemDto>> ShowSensor(){
+        //     return (await this.context.Sensors.Where(x=>x.DeletedAt==null).Include(x => x.MikroController).ToListAsync()).Select(y => new SensorItemDto{
+        //         Id = y.Id,
+        //         Name = y.Name,
+        //         Description = y.Description,
+        //         MicroId = y.MikroController.Id,
+        //         MicroName = y.MikroController.Name
+        //     });
+        // }
         [HttpGet("{LandId:int?}")]
         public async Task<SensorSearchResponse> Search([FromQuery] SearchRequest query, int LandId = -1)
         {
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
             query.Search = query.Search == null ? "" : query.Search.ToLower();
-            var q = this.context.Sensors.Where(x=>x.DeletedAt==null)
+            var q = this.context.Sensors.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false).Where(x=>x.DeletedAt==null)
             .Include(x=> x.ParentType).Include(x => x.MikroController).ThenInclude(x => x.MiniPc).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
             .Where(x=>LandId==-1? true: x.MikroController.MiniPc.Region.LandId==LandId)
             .Where(x => x.Name.ToLower().Contains(query.Search));
@@ -89,14 +97,19 @@ namespace backend.Controllers
         }
         [HttpPost]
         public async Task<int> AddSensor([FromBody] AddSensorDto model){
-            var obj = await this.context.AddAsync(new Sensor{
-                Name = model.Name,
-                Description = model.Description,
-                MikrocontrollerId = model.MicroId,
-                ParentTypeId = model.ParentTypeId,
-                ParentParamId = model.ParameterId
-            });
-            return await this.context.SaveChangesAsync();
+            if(this.currentUser.RoleId != 3){
+                var obj = await this.context.AddAsync(new Sensor{
+                    Name = model.Name,
+                    Description = model.Description,
+                    MikrocontrollerId = model.MicroId,
+                    ParentTypeId = model.ParentTypeId,
+                    ParentParamId = model.ParameterId,
+                    CreatedById = this.currentUser.UserId 
+                });
+                return await this.context.SaveChangesAsync();
+            }
+                return 0;
+
         }
 
         // [HttpPost]
@@ -148,21 +161,32 @@ namespace backend.Controllers
         }
 
         [HttpPut("{SensorId}")]
-        public async Task UpdateSensor(int SensorId,[FromBody] UpdateSensorDto model){
-            var result = await this.context.Sensors.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==SensorId);
-            result.Name = model.Name;
-            result.Description = model.Description;
-            result.ParentTypeId = model.ParentTypeId;
-            result.MikrocontrollerId = model.MicroId;
-
-            await this.context.SaveChangesAsync();
+        public async Task<IActionResult> UpdateSensor(int SensorId,[FromBody] UpdateSensorDto model){
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            var CheckSensorId = this.context.Sensors.Where(x=>x.DeletedAt==null).Where(x => arrayId.Contains(x.CreatedById.Value)).Select(x => x.Id == SensorId).FirstOrDefault();
+            if(this.currentUser.RoleId != 3 && CheckSensorId != false){
+                var result = await this.context.Sensors.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==SensorId);
+                result.Name = model.Name;
+                result.Description = model.Description;
+                result.ParentTypeId = model.ParentTypeId;
+                result.MikrocontrollerId = model.MicroId;
+                await this.context.SaveChangesAsync();
+                return new OkObjectResult(new AppResponse { message="Sucess"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Akses Tidak Ditemukan"});
         }
 
         [HttpDelete("{SensorId}")]
-        public async Task DeleteSensor(int SensorId){
-            var result = await this.context.Sensors.FirstOrDefaultAsync(x=>x.Id==SensorId);
-            this.context.Sensors.Remove(result!);
-            await this.context.SaveChangesAsync();
+        public async Task<IActionResult> DeleteSensor(int SensorId){
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            var CheckSensorId = this.context.Sensors.Where(x=>x.DeletedAt==null).Where(x => arrayId.Contains(x.CreatedById.Value)).Select(x => x.Id == SensorId).FirstOrDefault();
+            if(this.currentUser.RoleId != 3 && CheckSensorId != false){
+                var result = await this.context.Sensors.Where(x => x.DeletedAt == null).FirstOrDefaultAsync(x=>x.Id==SensorId);
+                this.context.Sensors.Remove(result!);
+                await this.context.SaveChangesAsync();
+                return new OkObjectResult(new AppResponse { message="Sucess"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Akses Tidak Ditemukan"});
         }
     }
     public class SensorType{

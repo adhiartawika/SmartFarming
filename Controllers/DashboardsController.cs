@@ -4,26 +4,33 @@ using backend.Model.AppEntity;
 using backend.Persistences;
 using backend.Commons;
 using System.Linq;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 namespace backend.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]/[action]")]
     public class DashboardsController : ControllerBase
     {
         private readonly AppDbContext context;
-
-        public DashboardsController(AppDbContext context)
+        private readonly ICurrentUserService currentUser;
+        private readonly IUtilityCurrentUserAces UserAcess;
+        public DashboardsController(AppDbContext context, ICurrentUserService currentUser,IUtilityCurrentUserAces UserAcess)
         {
             this.context = context;
+            this.currentUser = currentUser;
+            this.UserAcess = UserAcess;
         }
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<DashboardDataDto>> OverviewMikroMini(int LandId){
-            var obj_baru =( await this.context.MiniPcs
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            var obj_baru =( await this.context.MiniPcs.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
             .Include(x => x.Region).ThenInclude(x=>x.Land)
             .Include(x => x.Region).ThenInclude(x=>x.Plant)
             .Include(x=>x.IotStatus)
             .Include(x => x.Mikrokontrollers).ThenInclude(x=>x.Sensor)
+            .Where(x => x.DeletedAt == null)
             .Where(x => x.Region.LandId == LandId)
             .OrderBy(x=> x.CreatedAt).ToListAsync())
             .Select(y => new DashboardDataDto{
@@ -39,23 +46,13 @@ namespace backend.Controllers
         }
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<SensorParamViewDto>> SensorParamView(int LandId){
-            // var data1 = this.conteyt.Datas
-            // .Include(x => x.Sensor).ThenInclude(x => x.MikroController).ThenInclude(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x => x.Plant)
-            // .Include(x=>x.ParentParam).ThenInclude(x=>x.Plant)
-            // .Include(x=>x.ParentParam).ThenInclude(x=>x.Plant).ThenInclude(x=>x.ParentParameters).ThenInclude(y => y.ParentTypes)
-            // .ToList();
-            // var roncom = data1.Select(x => new SensorParamViewDto{
-            //     ParentTypeId = x.ParentParam.ParentTypesId,
-            //     ParentTypeName = x.ParentParam.ParentTypes.Name,
-            //     Values = x.ValueParameter
-            // }).ToList().LastOrDefault();
-
-            // Console.WriteLine(roncom);
-            var datas = this.context.Sensors
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            var datas = this.context.Sensors.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
             .Include(y => y.Datas)
             .Include(x => x.MikroController)
             .ThenInclude(x => x.MiniPc).ThenInclude(x => x.Region)
             .ThenInclude(x => x.Plant)
+            .Where(x => x.DeletedAt == null)
             .Where( x => x.MikroController.MiniPc.Region.LandId == LandId)
             .Select(x => new SensorParamViewDto{
                 SensorId = x.Id,

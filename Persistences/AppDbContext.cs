@@ -17,7 +17,10 @@ namespace backend.Persistences
 {
     public interface IAppDbContext
     {
-
+        public DbSet<Schedule> Schedules {get;set;}
+        public DbSet<ScheduleLog> ScheduleLogs {get;set;}
+        public DbSet<ScheduleLogImage> ScheduleLogImages {get;set;}
+        public DbSet<ScheduleOccurrence> ScheduleOccurrences {get;set;}
         public DbSet<UserRole>UserRoles{get;set;}
         public DbSet<Plant> Plants { get; set; }
         public DbSet<Land> Lands { get; set; }
@@ -41,7 +44,12 @@ namespace backend.Persistences
         public DbSet<TypeActuators> TypeActuators {get;set;}
         public DbSet<ParentParameter> ParentParameters {get;set;}
         public DbSet<ParentType> ParentTypes {get;set;}
-
+        public DbSet<PlantVirus> PlantViruses {get;set;}
+        public DbSet<VirusMonitor> VirusMonitors {get;set;}
+        public DbSet<MonitorStatus> MonitorStatuses {get;set;}
+        public DbSet<Instituted> Instituteds {get;set;}
+        public DbSet<LanLatDiseases> LanLatDiseases {get;set;}
+        public DbSet<DiseaseImage> DiseaseImages { get; set; }
         // public DbSet<NotificationType> NotificationTypes { get; set; }
         // public DbSet<NotificationContent> NotificationContents { get; set; }
 
@@ -73,13 +81,17 @@ namespace backend.Persistences
             this._dateTime = dateTime;
         }
 
+        public DbSet<PlantVirus> PlantViruses {get;set;}
+        public DbSet<VirusMonitor> VirusMonitors {get;set;}
+        public DbSet<MonitorStatus> MonitorStatuses {get;set;}
         public DbSet<UserRole>UserRoles{get;set;}
         public DbSet<Plant> Plants { get ; set ; }
         // public DbSet<DataResult> DataResults { get ; set ; }
         public DbSet<Land> Lands { get ; set ; }
+        public DbSet<Instituted> Instituteds {get;set;}
         public DbSet<Region> Regions { get ; set ; }
         public DbSet<IotStatus> IotStatus { get ; set ; }
-
+        public DbSet<LanLatDiseases> LanLatDiseases {get;set;}
         public DbSet<MiniPc> MiniPcs {get;set;}
         public DbSet<Parameter> Parameters { get ; set ; }
         public DbSet<TypeActuators> TypeActuators {get;set;}
@@ -94,6 +106,12 @@ namespace backend.Persistences
         public DbSet<UserDevice> UserDevices { get; set; }
         public DbSet<ApplicationUser> Users { get; set;}
         public DbSet<IdIoT> IdentityIoTs { get; set; }
+
+        public DbSet<DiseaseImage> DiseaseImages { get; set; }
+        public DbSet<Schedule> Schedules {get;set;}
+        public DbSet<ScheduleLog> ScheduleLogs {get;set;}
+        public DbSet<ScheduleLogImage> ScheduleLogImages {get;set;}
+        public DbSet<ScheduleOccurrence> ScheduleOccurrences {get;set;}
 ///ubah get set
         // public DbSet<NotificationContent> NotificationContents { get; set; }
         // public DbSet<NotificationType> NotificationTypes { get; set; }
@@ -105,7 +123,7 @@ namespace backend.Persistences
                 switch (entry.State)
                 {
                     case EntityState.Added:
-                        entry.Entity.CreatedBy = (int)_currentUserService.UserId;
+                        // entry.Entity.CreatedById = (int)_currentUserService.UserId;
                         entry.Entity.CreatedAt = _dateTime.Now;
                         break;
                     case EntityState.Modified:
@@ -211,7 +229,29 @@ namespace backend.Persistences
             //         .HasColumnType("decimal(6,3)");
             // builder.Entity<Sensor>().HasOne(x => x.ParentType).WithMany().HasForeignKey(x => x.ParentTypeId).OnDelete(DeleteBehavior.Restrict);
             // builder.Entity<Data>().HasOne(x => x.Sensor).WithMany().HasForeignKey(x => x.SensorId).OnDelete(DeleteBehavior.Restrict);
-            builder.Entity<ApplicationUser>()
+        // foreach (var entityType in builder.Model.GetEntityTypes())
+        // {
+        //     foreach (var property in entityType.GetProperties())
+        //     {
+        //         if (property.Name == "CreatedBy")
+        //         {
+        //             //fixTextDatas.Add(new Tuple<Type, Type, string>(entityType.ClrType, property.ClrType, property.Name));
+        //             builder.Entity(entityType.ClrType).HasOne( ).WithMany();
+
+        //         }
+        //         else if (Type.GetTypeCode(property.ClrType) == TypeCode.String)
+        //         {
+        //             builder.Entity(entityType.ClrType).Property(property.ClrType, property.Name).HasColumnType("varchar(255)");
+
+        //         }
+        //     }
+        // }
+        // builder.Entity<Plant>()
+        //     .HasOne( e => e.CreatedBy)
+        //     .WithMany( e => e.instituted)
+        //     .HasForeignKey(e => e.CreatedById);
+        // builder.Entity<Plant>().HasOne(e => e.CreatedBy).WithMany().HasForeignKey(e => e.CreatedById);
+        builder.Entity<ApplicationUser>()
                 .HasMany(u => u.Roles)
                 .WithMany(r => r.User)
                 .UsingEntity<IdentityUserRole<int>>(
@@ -224,10 +264,26 @@ namespace backend.Persistences
                     .HasForeignKey(ur => ur.UserId)
                     .IsRequired()
                 );
+            // builder.Entity<ApplicationUser>()
+            //         .HasOne(x => x.instituted)
+            //         .WithMany(x => x.User)
+            //         .HasForeignKey(x => x.institutedId);
+
             builder.Entity<Data>()
                     .Property(x => x.ValueParameter)
                     .HasColumnType("decimal(7,3)");
-
+                    
+            /* For Schedule Relation*/
+            builder.Entity<Schedule>()
+                .HasOne(l => l.Land);
+            builder.Entity<Schedule>()
+                .HasMany(g => g.ScheduleLogs);
+            builder.Entity<ScheduleLog>()
+                .HasMany(i => i.Images);
+            // builder.Entity<ScheduleOccurrence>()
+                // .HasOne(s => s.Schedule);
+            builder.Entity<Schedule>()
+                .HasOne(dm => dm.DiseaseMonitor);
             base.OnModelCreating(builder);
         }
     }

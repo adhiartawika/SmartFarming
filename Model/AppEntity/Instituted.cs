@@ -4,16 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using backend.Identity;
 
 namespace backend.Model.AppEntity
 {
-    public class Instituted: Auditable
+    public class Instituted
     {
+        public Instituted(){
+            this.User = new HashSet<ApplicationUser>();
+        }
         public int Id { get; set; }
-        public int Nama { get; set; }
-        public string LandId { get; set; }
-        public virtual Land Land {get; set;}
-        public string PlantId { get; set; }
-        public virtual Plant Plant {get;set;}
+        public string Nama { get; set; }
+        
+        public string Alamat {get;set;}
+        public ICollection<ApplicationUser> User {get;set;}
     }
 }

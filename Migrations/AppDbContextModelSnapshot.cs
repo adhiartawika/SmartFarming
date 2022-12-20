@@ -77,7 +77,12 @@ namespace backend.Migrations
                     b.Property<string>("UserName")
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("institutedId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("institutedId");
 
                     b.ToTable("Users");
                 });
@@ -118,7 +123,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -165,7 +170,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -217,6 +222,45 @@ namespace backend.Migrations
                     b.ToTable("Datas");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.DiseaseImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("VirusMonitorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VirusMonitorId");
+
+                    b.ToTable("DiseaseImages");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.Instituted", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Alamat")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Nama")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Instituteds");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.IotStatus", b =>
                 {
                     b.Property<int>("Id")
@@ -264,7 +308,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -286,12 +330,31 @@ namespace backend.Migrations
                     b.Property<byte[]>("Photo")
                         .HasColumnType("longblob");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Lands");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.LanLatDiseases", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VirusMonitorId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("latitude")
+                        .HasColumnType("double");
+
+                    b.Property<double>("longitude")
+                        .HasColumnType("double");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VirusMonitorId");
+
+                    b.ToTable("LanLatDiseases");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Mikrokontroller", b =>
@@ -303,7 +366,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -349,7 +412,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -391,6 +454,21 @@ namespace backend.Migrations
                     b.ToTable("MiniPcs");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.MonitorStatus", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("id");
+
+                    b.ToTable("MonitorStatuses");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.Parameter", b =>
                 {
                     b.Property<int>("Id")
@@ -401,27 +479,9 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("DeletedBy")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("LastModifiedBy")
-                        .HasColumnType("int");
 
                     b.Property<double>("MaxValue")
                         .HasColumnType("double");
@@ -448,24 +508,6 @@ namespace backend.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("DeletedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("LastModifiedBy")
                         .HasColumnType("int");
 
                     b.Property<int>("ParentTypesId")
@@ -510,7 +552,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -542,6 +584,25 @@ namespace backend.Migrations
                     b.ToTable("Plants");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.PlantVirus", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Nama")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("id");
+
+                    b.ToTable("PlantViruses");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.Region", b =>
                 {
                     b.Property<int>("Id")
@@ -554,7 +615,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -592,6 +653,108 @@ namespace backend.Migrations
                     b.ToTable("Regions");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.Schedule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiseaseMonitorid")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("LandId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("StartingDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<byte>("Tag")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiseaseMonitorid");
+
+                    b.HasIndex("LandId");
+
+                    b.ToTable("Schedules");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("ScheduleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.ToTable("ScheduleLogs");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleLogImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("Byte")
+                        .IsRequired()
+                        .HasColumnType("longblob");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("ScheduleLogId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScheduleLogId");
+
+                    b.ToTable("ScheduleLogImages");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleOccurrence", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("ScheduleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ScheduleOccurrences");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.Sensor", b =>
                 {
                     b.Property<int>("Id")
@@ -601,7 +764,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -700,6 +863,53 @@ namespace backend.Migrations
                     b.ToTable("UserDevices");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.VirusMonitor", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageDisease")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("LastModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MonitorStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RegionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VirusId")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("MonitorStatusId");
+
+                    b.HasIndex("RegionId");
+
+                    b.HasIndex("VirusId");
+
+                    b.ToTable("VirusMonitors");
+                });
+
             modelBuilder.Entity("backend.Model.IdEntity.IdIoT", b =>
                 {
                     b.Property<int>("Id")
@@ -713,7 +923,7 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -757,6 +967,15 @@ namespace backend.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("IdentityUserRole<int>");
+                });
+
+            modelBuilder.Entity("backend.Identity.ApplicationUser", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.Instituted", "instituted")
+                        .WithMany("User")
+                        .HasForeignKey("institutedId");
+
+                    b.Navigation("instituted");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Actuator", b =>
@@ -806,6 +1025,15 @@ namespace backend.Migrations
                     b.Navigation("Sensor");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.DiseaseImage", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.VirusMonitor", "VirusMonitor")
+                        .WithMany()
+                        .HasForeignKey("VirusMonitorId");
+
+                    b.Navigation("VirusMonitor");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.IotStatus", b =>
                 {
                     b.HasOne("backend.Model.AppEntity.Mikrokontroller", "MicroController")
@@ -819,6 +1047,15 @@ namespace backend.Migrations
                     b.Navigation("MicroController");
 
                     b.Navigation("MiniPc");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.LanLatDiseases", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.VirusMonitor", "VirusMonitor")
+                        .WithMany("LanLatDiseases")
+                        .HasForeignKey("VirusMonitorId");
+
+                    b.Navigation("VirusMonitor");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Mikrokontroller", b =>
@@ -904,6 +1141,37 @@ namespace backend.Migrations
                     b.Navigation("Plant");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.Schedule", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.VirusMonitor", "DiseaseMonitor")
+                        .WithMany()
+                        .HasForeignKey("DiseaseMonitorid");
+
+                    b.HasOne("backend.Model.AppEntity.Land", "Land")
+                        .WithMany()
+                        .HasForeignKey("LandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DiseaseMonitor");
+
+                    b.Navigation("Land");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleLog", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.Schedule", null)
+                        .WithMany("ScheduleLogs")
+                        .HasForeignKey("ScheduleId");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleLogImage", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.ScheduleLog", null)
+                        .WithMany("Images")
+                        .HasForeignKey("ScheduleLogId");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.Sensor", b =>
                 {
                     b.HasOne("backend.Model.AppEntity.Mikrokontroller", "MikroController")
@@ -940,6 +1208,33 @@ namespace backend.Migrations
                     b.Navigation("Land");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.VirusMonitor", b =>
+                {
+                    b.HasOne("backend.Model.AppEntity.MonitorStatus", "MonitorStatus")
+                        .WithMany()
+                        .HasForeignKey("MonitorStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.AppEntity.Region", "Region")
+                        .WithMany()
+                        .HasForeignKey("RegionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.AppEntity.PlantVirus", "Virus")
+                        .WithMany()
+                        .HasForeignKey("VirusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MonitorStatus");
+
+                    b.Navigation("Region");
+
+                    b.Navigation("Virus");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
                 {
                     b.HasOne("backend.Identity.UserRole", null)
@@ -958,6 +1253,11 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Model.AppEntity.Actuator", b =>
                 {
                     b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.Instituted", b =>
+                {
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("backend.Model.AppEntity.Land", b =>
@@ -1003,9 +1303,24 @@ namespace backend.Migrations
                     b.Navigation("MiniPcs");
                 });
 
+            modelBuilder.Entity("backend.Model.AppEntity.Schedule", b =>
+                {
+                    b.Navigation("ScheduleLogs");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.ScheduleLog", b =>
+                {
+                    b.Navigation("Images");
+                });
+
             modelBuilder.Entity("backend.Model.AppEntity.Sensor", b =>
                 {
                     b.Navigation("Datas");
+                });
+
+            modelBuilder.Entity("backend.Model.AppEntity.VirusMonitor", b =>
+                {
+                    b.Navigation("LanLatDiseases");
                 });
 
             modelBuilder.Entity("backend.Model.IdEntity.IdIoT", b =>

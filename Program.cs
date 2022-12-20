@@ -24,7 +24,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using backend.Hubs;
-
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 IConfiguration configuration = builder.Configuration;
@@ -50,6 +50,7 @@ builder.Services.AddControllersWithViews().AddJsonOptions(jsonOptions =>
 builder.Services.AddSingleton<IConfiguration>(configuration);
 builder.Services.AddScoped<IDateTime, DateTimeService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IUtilityCurrentUserAces,UtilityCurrentUserAces>();
 builder.Services.AddScoped<ICurrentIoTService, CurrentIoTService>();
 builder.Services.AddHttpContextAccessor();
 // if (builder.Environment.IsDevelopment())
@@ -111,6 +112,16 @@ builder.Services.AddAuthentication()
             RequireExpirationTime=false
         };
     });
+builder.Services.AddScoped<IMyScopedService,ScopedServices>();
+builder.Services.AddCronJob<MyCronJob1>(c =>{
+    c.TimeZoneInfo = TimeZoneInfo.Local;
+    c.CronExpression =  @"*/5 * * * *";
+});
+// builder.Services.Configure<StaticFileOptions>(options =>
+// {
+//     options.FileProvider = new PhysicalFileProvider(@"D:\kuliah\semester 1\rekayasa perngkat lunak\photo progress\backend\wwwroot");
+//     options.RequestPath = "/Images";
+// });
 // builder.Services.AddSignalRCore(  o =>{
 //                 o.EnableDetailedErrors = true;
 //                 o.MaximumReceiveMessageSize = 10240;
@@ -155,6 +166,17 @@ else
 
 
 app.UseHttpsRedirection();
+// app.UseStaticFiles(new StaticFileOptions {
+//     FileProvider = new PhysicalFileProvider(
+//         Path.Combine( "DiseaseImg")),
+//     RequestPath = "/StaticFiles"
+// });
+// app.UseStaticFiles(new StaticFileOptions
+// {
+//     RequestPath = "/Images",
+//     FileProvider = new PhysicalFileProvider(@"D:\kuliah\semester 1\rekayasa perngkat lunak\photo progress\backend\wwwroot"),
+// });
+
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors();

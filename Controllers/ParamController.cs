@@ -2,18 +2,23 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Model.AppEntity;
 using backend.Persistences;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using backend.Commons;
 namespace backend.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]/[action]")]
     public class ParamController : ControllerBase
     {
         private readonly AppDbContext _context;
 
-        public ParamController(AppDbContext context)
+        private readonly ICurrentUserService currentUser;
+        public ParamController(AppDbContext context, ICurrentUserService currentUser)
         {
             _context = context;
+            this.currentUser = currentUser;
         }
 
         [HttpGet]
@@ -26,7 +31,10 @@ namespace backend.Controllers
 
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<int>> ShowMinimalParam(int LandId){
-            var temp = this._context.Regions.Include(x=>x.Plant).Where(x=>x.LandId==LandId).Select(x=>x.PlantId).ToList();
+            var all_user = this._context.Users.Include(x => x.instituted).ToList();
+            var user_in_instituted = _context.Users.Include(x => x.instituted).Where(x => this.currentUser.UserId == x.Id).Select(x => x.instituted.Nama).FirstOrDefault();
+            var arrayId = from obj in all_user where user_in_instituted == obj.instituted.Nama select obj.Id;
+            var temp = this._context.Regions.Include(x=>x.Plant).Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false).Where(x=>x.LandId==LandId).Select(x=>x.PlantId).ToList();
             return (await this._context.Parameters
             .Include(x =>x.ParentParam).ThenInclude(x=>x.Plant).ThenInclude(x=>x.Regions)
             // .ThenInclude(x=>x.RegionPlants).ThenInclude(x=>x.Region).ThenInclude(x=>x.Land)
@@ -105,76 +113,92 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<CreateParentParamResponse> CreateParam([FromBody] CreateParameter model)
         {
-            List<int> res = new List<int>();
+            if(this.currentUser.RoleId == 2 || this.currentUser.RoleId ==1){
+                List<int> res = new List<int>();
 
-            List<Parameter> objs = new List<Parameter>();
-            for (int i = 0; i < model.Descriptions.Count(); i++)
-            {
-                objs.Add(new Parameter{
+                List<Parameter> objs = new List<Parameter>();
+                for (int i = 0; i < model.Descriptions.Count(); i++)
+                {
+                    objs.Add(new Parameter{
 
-                    Color=model.Descriptions.ElementAt(i).Color,
-                    Description=model.Descriptions.ElementAt(i).Description,
-                    MaxValue=model.Descriptions.ElementAt(i).MaxValue,
-                    MinValue=model.Descriptions.ElementAt(i).MinValue,
-                });
+                        Color=model.Descriptions.ElementAt(i).Color,
+                        Description=model.Descriptions.ElementAt(i).Description,
+                        MaxValue=model.Descriptions.ElementAt(i).MaxValue,
+                        MinValue=model.Descriptions.ElementAt(i).MinValue,
+                    });
+                }
+                ParentParameter p = new ParentParameter{
+                    ParentTypesId=model.GroupName,
+                    Parameters=objs
+                };
+
+                await _context.ParentParameters.AddAsync(p);
+                await _context.SaveChangesAsync();
+                for (int i = 0; i < objs.Count(); i++)
+                {
+                    res.Add(objs.ElementAt(i).Id);
+                }
+
+                return new CreateParentParamResponse{
+                    Id=p.Id,
+                    ParamIds=res
+                };
             }
-            ParentParameter p = new ParentParameter{
-                ParentTypesId=model.GroupName,
-                Parameters=objs
-            };
-
-            await _context.ParentParameters.AddAsync(p);
-            await _context.SaveChangesAsync();
-            for (int i = 0; i < objs.Count(); i++)
-            {
-                res.Add(objs.ElementAt(i).Id);
-            }
-
-            return new CreateParentParamResponse{
-                Id=p.Id,
-                ParamIds=res
-            };
+            return null;
         }
         [HttpPost]
         public async Task<int> CreateDescriptionParam([FromBody] CreateDescriptionParameter model)
         {
-            var obj_baru = await _context.Parameters.AddAsync(
-                new Parameter{
-                    Color=model.Color,
-                    Description=model.Description,
-                    ParentParamId=model.ParentParamId,
-                    MaxValue=model.MaxValue,
-                    MinValue=model.MinValue,
-                }
-            );
-            await _context.SaveChangesAsync();
-            return obj_baru.Entity.Id;
+            if(this.currentUser.RoleId != 3){
+                var obj_baru = await _context.Parameters.AddAsync(
+                    new Parameter{
+                        Color=model.Color,
+                        Description=model.Description,
+                        ParentParamId=model.ParentParamId,
+                        MaxValue=model.MaxValue,
+                        MinValue=model.MinValue,
+                    }
+                );
+                await _context.SaveChangesAsync();
+                return obj_baru.Entity.Id;
+            }
+            return 0;
         }
 
         [HttpPut("{id}")]
-        public async Task UpdateParam(int Id , [FromBody] UpdateParameter model)
+        public async Task<IActionResult> UpdateParam(int Id , [FromBody] UpdateParameter model)
         {
-            var result =  await _context.ParentParameters.Where(x=>Id==x.Id).FirstOrDefaultAsync();
-            Console.WriteLine(result.ParentTypesId);
-            result.ParentTypesId = model.ParentTypeId;
-            await _context.SaveChangesAsync();
+            if(this.currentUser.RoleId == 2 || this.currentUser.RoleId ==1){
+                var result =  await _context.ParentParameters.Where(x=>Id==x.Id).FirstOrDefaultAsync();
+                result.ParentTypesId = model.ParentTypeId;
+                await _context.SaveChangesAsync();
+                return new OkObjectResult(new AppResponse { message="Param Berhasil Terubah"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Role Tidak Dizinkan"});
         }
         [HttpPut("{id}")]
-        public async Task UpdateDescriptionParam(int Id , [FromBody] UpdateDescriptionParameter model)
+        public async Task<IActionResult> UpdateDescriptionParam(int Id , [FromBody] UpdateDescriptionParameter model)
         {
-            var result =  await _context.Parameters.FindAsync(Id);
-            result.Description = model.Description;
-            result.MinValue = model.MinValue;
-            result.MaxValue = model.MaxValue;
-            result.Color = model.Color;
-            await _context.SaveChangesAsync();
+            if(this.currentUser.RoleId == 2 || this.currentUser.RoleId ==1){
+                var result =  await _context.Parameters.FindAsync(Id);
+                result.Description = model.Description;
+                result.MinValue = model.MinValue;
+                result.MaxValue = model.MaxValue;
+                result.Color = model.Color;
+                await _context.SaveChangesAsync();
+                return new OkObjectResult(new AppResponse { message="Param Berhasil Terubah"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Role Tidak Dizinkan"});
         }
         [HttpDelete("{Id}")]
-        public async Task DeleteParam(int Id)
+        public async Task<IActionResult> DeleteParam(int Id)
         {
-            var result =  await _context.ParentParameters.Where(x=>x.Id==Id).FirstOrDefaultAsync()!;
-            
-            _context.ParentParameters.Remove(result!);
+            if(this.currentUser.RoleId == 2 || this.currentUser.RoleId ==1){
+                var result =  await _context.ParentParameters.Where(x=>x.Id==Id).FirstOrDefaultAsync()!;
+                _context.ParentParameters.Remove(result!);
+                return new OkObjectResult(new AppResponse { message="Param Berhasil Terhapus"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Role Tidak Dizinkan"});
             
         }
         [HttpDelete("{id}")]
