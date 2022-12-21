@@ -14,6 +14,6 @@ namespace backend.Model.AppEntity
         public ScheduleTagType Tag { get; set; }
         public Land Land { get; set; }
         public IList<ScheduleLog> ScheduleLogs { get; } = new List<ScheduleLog>();
-        public DiseaseMonitor? DiseaseMonitor { get; set; }
+        public VirusMonitor? DiseaseMonitor { get; set; }
     }
 }

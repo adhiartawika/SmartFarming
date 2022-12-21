@@ -24,7 +24,7 @@ namespace backend.Controllers
         else if(DateTime.Compare(ScheduleForm.EndDate, ScheduleForm.StartingDate) < 0 ) return BadRequest();
         try{
             var land = this.context.Lands.Where(x => x.Id == ScheduleForm.LandId).FirstOrDefault();
-            var diseaseMonitor = this.context.DiseaseMonitor.Where(x => x.Id == ScheduleForm.DiseaseMonitorId).FirstOrDefault();
+            var diseaseMonitor = this.context.VirusMonitors.Where(x => x.id == ScheduleForm.DiseaseMonitorId).FirstOrDefault();
             var schedule = new Schedule{
                 Name = ScheduleForm.Name,
                 StartingDate = ScheduleForm.StartingDate,

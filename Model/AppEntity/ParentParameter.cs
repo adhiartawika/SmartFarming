@@ -6,7 +6,7 @@ using backend.Commons;
 
 namespace backend.Model.AppEntity
 {
-    public class ParentParameter:Auditable{
+    public class ParentParameter{
 
         public ParentParameter(){
             this.Parameters = new HashSet<Parameter>();

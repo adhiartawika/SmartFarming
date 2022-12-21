@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using backend.Persistences;
 
 namespace backend.Commons
 {
@@ -15,12 +16,13 @@ namespace backend.Commons
         int? UserId { get;}
         int? RoleId {get;}
         //roler int
+        // int? instId {get;}
     }
     public class CurrentUserService : ICurrentUserService
     {
         private IHttpContextAccessor _httpContextAccessor;
         //private IHttpClientFactory _httpClientFactory;
-        public CurrentUserService(IHttpContextAccessor httpContextAccessor)
+        public CurrentUserService(IHttpContextAccessor httpContextAccessor )
         {
             this._httpContextAccessor = httpContextAccessor;
             //this._httpClientFactory = httpClientFactory;
@@ -30,6 +32,9 @@ namespace backend.Commons
 
             UserId = int.Parse(temp??"0");
             RoleId = int.Parse(tempRole??"0");
+
+            // var inst1 = this.context.Users.Where(x => x.Id == UserId).Select(x => x.Id).FirstOrDefault();
+            // instId = inst1;
         }
 
         private async Task getUserInfo()
@@ -68,6 +73,7 @@ namespace backend.Commons
 
         public int? UserId { get; private set; }
         public int? RoleId {get; private set;}
+        // public int? instId {get; private set;}
 
     }
 }

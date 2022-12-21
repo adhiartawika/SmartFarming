@@ -6,7 +6,7 @@ using backend.Commons;
 
 namespace backend.Model.AppEntity
 {
-    public class Parameter:Auditable
+    public class Parameter
     {
         public Parameter()
         {

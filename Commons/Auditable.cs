@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using backend.Identity;
 
 namespace backend.Commons
 {
@@ -21,7 +22,8 @@ namespace backend.Commons
     }
     public abstract class Auditable
     {
-        public int CreatedBy { get; set; }
+        public int? CreatedById { get; set; }
+        // public virtual ApplicationUser CreatedBy {get; set;}
 
         public DateTime CreatedAt { get; set; }
 

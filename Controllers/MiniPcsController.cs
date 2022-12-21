@@ -5,22 +5,29 @@ using backend.Model.IdEntity;
 using backend.Persistences;
 using backend.Commons;
 using System.Linq;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]/[action]")]
 
     public class MiniPcsCrudController : ControllerBase
     {
         private readonly AppDbContext context;
-
-        public MiniPcsCrudController(AppDbContext context){
+        private readonly ICurrentUserService currentUser;
+        private readonly IUtilityCurrentUserAces UserAcess;
+        public MiniPcsCrudController(AppDbContext context, ICurrentUserService currentUser,IUtilityCurrentUserAces UserAcess){
             this.context = context;
+            this.currentUser = currentUser;
+            this.UserAcess = UserAcess;
         }
         [HttpGet]
         public async Task<IEnumerable<MiniPcItemDto>> ShowMiniPc(){
-            return (await this.context.MiniPcs
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            return (await this.context.MiniPcs.Where(x=>x.DeletedAt==null).Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
             .Include(x =>x.Region)
             .Include(x => x.Mikrokontrollers).ToListAsync()).Select(y => new MiniPcItemDto{
                 Id = y.Id,
@@ -38,10 +45,12 @@ namespace backend.Controllers
         }
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<MiniPcItem2DTO>> ShowMiniPcInALand(int LandId){
-            return (await this.context.MiniPcs
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            return (await this.context.MiniPcs.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
             .Include(x =>x.Region).ThenInclude(x=>x.Land)
             .Include(x=>x.Region).ThenInclude(x=>x.Plant)
             .Include(x=>x.IotStatus.OrderByDescending(y=>y.CreatedAt).Take(1))
+            .Where(x => x.DeletedAt == null)
             .Where(x=>x.Region.LandId==LandId)
             .ToListAsync()).Select(y => new MiniPcItem2DTO{
                 Id = y.Id,
@@ -69,57 +78,79 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<int> AddMini([FromBody] CreateMiniDto model)
         {
-            // reg.RegionPlant.Add(new RegionPlant{PlantId=model.PlantId});  
-            var obj_iot = await this.context.IdentityIoTs.AddAsync(new IdIoT 
+            // reg.RegionPlant.Add(new RegionPlant{PlantId=model.PlantId});
+            if(this.currentUser.RoleId != 3){
+                var obj_iot = await this.context.IdentityIoTs.AddAsync(new IdIoT 
+                    { 
+                        Name = model.Name,
+                        Code = model.Code,
+                        Secret = model.Secret,
+                        CreatedById = this.currentUser.UserId
+                    });
+                await this.context.SaveChangesAsync();
+                
+                var obj_baru = await this.context.MiniPcs.AddAsync(new MiniPc 
                 { 
-                    Name = model.Name,
+                    Name = model.Name, 
+                    Description = model.Description, 
+                    RegionId = model.RegionId,
+                    IdentityId = obj_iot.Entity.Id,
                     Code = model.Code,
                     Secret = model.Secret,
+                    CreatedById = this.currentUser.UserId
                 });
-            await this.context.SaveChangesAsync();
-             
-            var obj_baru = await this.context.MiniPcs.AddAsync(new MiniPc 
-            { 
-                Name = model.Name, 
-                Description = model.Description, 
-                RegionId = model.RegionId,
-                IdentityId = obj_iot.Entity.Id,
-                Code = model.Code,
-                Secret = model.Secret
-            });
-            await this.context.SaveChangesAsync();
-            return obj_baru.Entity.Id;
+                await this.context.SaveChangesAsync();
+                return obj_baru.Entity.Id;
+            }
+            return 0;
+            
         }
         [HttpPut("{MiniPcId}")]
-        public async Task UpdateMiniPc( int MiniPcId ,[FromBody] UpdateMiniPcDto model){
-            var result = await this.context.MiniPcs.FindAsync(MiniPcId);
-            result.Name = model.Name;
-            result.Description = model.Description;
-            result.RegionId = model.RegionId;
-            await this.context.SaveChangesAsync();
+        public async Task<IActionResult> UpdateMiniPc( int MiniPcId ,[FromBody] UpdateMiniPcDto model){
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            var CheckMiniPcId = this.context.MiniPcs.Where(x=>x.DeletedAt==null).Where(x => arrayId.Contains(x.CreatedById.Value)).Select(x => x.Id == MiniPcId).FirstOrDefault();
+            Console.WriteLine(CheckMiniPcId);
+            if(this.currentUser.RoleId != 3 && CheckMiniPcId != false){ 
+                var result = await this.context.MiniPcs.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==MiniPcId);
+                result.Name = model.Name;
+                result.Description = model.Description;
+                result.RegionId = model.RegionId;
+                await this.context.SaveChangesAsync();
+                return new OkObjectResult(new AppResponse { message="Sucess"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Akses Tidak Ditemukan"});
         }
-        [HttpDelete("{MicroId}")]
-        public async Task DeleteMiniPc(int MicroId)
+        [HttpDelete("{MiniPcId}")]
+        public async Task<IActionResult> DeleteMiniPc(int MiniPcId)
         {
-            var result = await this.context.Mikrokontrollers.FindAsync(MicroId);
-            this.context.Mikrokontrollers.Remove(result!);
-            await this.context.SaveChangesAsync();
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            var CheckMiniPcId = this.context.MiniPcs.Where(x=>x.DeletedAt==null).Where(x => arrayId.Contains(x.CreatedById.Value)).Select(x => x.Id == MiniPcId).FirstOrDefault();
+            if(this.currentUser.RoleId != 3 && CheckMiniPcId != false){ 
+                var result = await this.context.MiniPcs.Where(x=>x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==MiniPcId);
+                this.context.MiniPcs.Remove(result);
+                await this.context.SaveChangesAsync();
+                return new OkObjectResult(new AppResponse { message="Sucess"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Akses Tidak Ditemukan"});
         }
         [HttpGet("{LandId:int?}")]
         public async Task<MiniPcSearchResponse> Search([FromQuery] SearchRequest query, int LandId = -1)
         {
+            
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
             query.Search = query.Search == null ? "" : query.Search.ToLower();
-            var q = this.context.MiniPcs
+            var q = this.context.MiniPcs.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
             .Include(x => x.Mikrokontrollers)
             .Include(x => x.Region).ThenInclude(x=>x.Land)
             // .Include(x => x.MiniPcs).ThenInclude(x=>x.Region).ThenInclude(x => x.Land)
             // .Include(x => x.Region).ThenInclude(x=>x.RegionPlant).ThenInclude(x=>x.Plant)
             .Include(x => x.Region).ThenInclude(x=>x.Plant)
             .Include(x=>x.IotStatus)
+            .Where(x => x.DeletedAt == null)
             .Where(x=>LandId==-1? true: x.Region.LandId==LandId)
             .Select(x=> new MiniPc{
                 CreatedAt=x.CreatedAt,
-                CreatedBy=x.CreatedBy,
+                CreatedById=x.CreatedById,
                 DeletedAt=x.DeletedAt,
                 DeletedBy=x.DeletedBy,
                 Description=x.Description,

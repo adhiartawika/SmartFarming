@@ -8,5 +8,6 @@ namespace backend.Model.IdEntity
 {
     public class IdentityUserApp: ApplicationUser
     {
+
     }
 }

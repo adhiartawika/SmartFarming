@@ -3,55 +3,63 @@ using Microsoft.EntityFrameworkCore;
 using backend.Model.AppEntity;
 using backend.Persistences;
 using backend.Commons;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]/[action]")]
     public class MikroCrudController:ControllerBase
     {
         private readonly AppDbContext context;
         //inject icurrentuser
-
-        public MikroCrudController(AppDbContext context){
+        private readonly ICurrentUserService currentUser;
+        private readonly IUtilityCurrentUserAces UserAcess;
+        public MikroCrudController(AppDbContext context, ICurrentUserService currentUser,IUtilityCurrentUserAces UserAcess){
 
             this.context = context;
+            this.currentUser = currentUser;
+            this.UserAcess = UserAcess;
         }
-        [HttpGet]
-        public async Task<IEnumerable<MicroItemDto>> ShowMicro(){
-            return (await this.context.Mikrokontrollers
-            // .Where(x => IUrlHelper.ro==9?true:IUrlHelper.8?x.createdBy = Iuser.userId : )
-            .Include(x => x.MiniPc).ThenInclude(x =>x.Region).ThenInclude(x=>x.Land)
-            .Include(x => x.MiniPc).ThenInclude(x =>x.Region).ThenInclude(x=>x.Plant)
-            .ToListAsync()).Select(y => new MicroItemDto{
-                Id = y.Id,
-                Name = y.Name,
-                Description = y.Description,
-                MiniPcId = y.MiniPc.Id,
-                MiniPcName = y.MiniPc.Name,
-                RegionId = y.MiniPc.Region.Id,
-                RegionName = y.MiniPc.Region.Name,
-                LandId=y.MiniPc.Region.LandId,
-                LandName=y.MiniPc.Region.Land.Name,
-                PlantId=y.MiniPc.Region.PlantId,
-                PlantName=y.MiniPc.Region.Plant.Name
-            });
-        }
+        // [HttpGet]
+        // public async Task<IEnumerable<MicroItemDto>> ShowMicro(){
+        //     return (await this.context.Mikrokontrollers
+        //     // .Where(x => IUrlHelper.ro==9?true:IUrlHelper.8?x.createdBy = Iuser.userId : )
+        //     .Include(x => x.MiniPc).ThenInclude(x =>x.Region).ThenInclude(x=>x.Land)
+        //     .Include(x => x.MiniPc).ThenInclude(x =>x.Region).ThenInclude(x=>x.Plant)
+        //     .ToListAsync()).Select(y => new MicroItemDto{
+        //         Id = y.Id,
+        //         Name = y.Name,
+        //         Description = y.Description,
+        //         MiniPcId = y.MiniPc.Id,
+        //         MiniPcName = y.MiniPc.Name,
+        //         RegionId = y.MiniPc.Region.Id,
+        //         RegionName = y.MiniPc.Region.Name,
+        //         LandId=y.MiniPc.Region.LandId,
+        //         LandName=y.MiniPc.Region.Land.Name,
+        //         PlantId=y.MiniPc.Region.PlantId,
+        //         PlantName=y.MiniPc.Region.Plant.Name
+        //     });
+        // }
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<MicroItemDto>> ShowOverviewMicro(int LandId, [FromQuery] MicrosIdenity model){
-            return (await this.context.Mikrokontrollers
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            return (await this.context.Mikrokontrollers.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
             .Include(x => x.MiniPc)
             .ThenInclude(x => x.Region).ThenInclude(x=>x.Land)
             .Include(x => x.MiniPc)
             .ThenInclude(x => x.Region).ThenInclude(x=>x.Plant)
             .Include(x=>x.IotStatus)
             .Include(x=>x.Sensor)
+            .Where(x => x.DeletedAt == null)
             .Where(x=>LandId==-1? true: x.MiniPc.Region.LandId==LandId)
             .Where(x=>model.Ids == null ? false:model.Ids.Contains(x.Id))
             .OrderBy(x=>x.CreatedAt)
             .Select(x=> new Mikrokontroller{
                 CreatedAt=x.CreatedAt,
-                CreatedBy=x.CreatedBy,
+                CreatedById=x.CreatedById,
                 DeletedAt=x.DeletedAt,
                 DeletedBy=x.DeletedBy,
                 Description=x.Description,
@@ -84,10 +92,13 @@ namespace backend.Controllers
         }
         [HttpGet("{LandId}")]
         public async Task<IEnumerable<MicroItemMinimalDto>> ShowMinimalMicro(int LandId){
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
             return (await this.context.Mikrokontrollers
             .Include( x=> x.MiniPc).ThenInclude(x => x.Region)
             .Where(x=>x.MiniPc.Region.LandId == LandId)
             .Where(x=>x.Sensor.Count() > 0)
+            .Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
+            .Where(x => x.DeletedAt == null)
             .ToListAsync()).Select(y => new MicroItemMinimalDto{
                 Id = y.Id,
                 Name = y.Name,
@@ -98,28 +109,35 @@ namespace backend.Controllers
         }
         [HttpPost]
         public async Task<int> AddMicro([FromBody] AddMicroDto model){
-            var AddMicro = await this.context.Mikrokontrollers.AddAsync(new Mikrokontroller{
-                Name = model.Name,
-                Description = model.Description,
-                MiniPcId = model.MiniPcId
-                // RegionId = model.RegionId
-            });
-            return await this.context.SaveChangesAsync();
+            if(this.currentUser.RoleId != 3){
+                var AddMicro = await this.context.Mikrokontrollers.AddAsync(new Mikrokontroller{
+                    Name = model.Name,
+                    Description = model.Description,
+                    MiniPcId = model.MiniPcId,
+                    CreatedById = this.currentUser.UserId
+                    // RegionId = model.RegionId
+                });
+                return await this.context.SaveChangesAsync();
+            }
+            return 0;
+
         }
         [HttpGet("{LandId:int?}")]
         public async Task<MicrocontrollerSearchResponse> Search([FromQuery] SearchRequest query, int LandId = -1)
         {
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
             query.Search = query.Search == null ? "" : query.Search.ToLower();
-            var q = this.context.Mikrokontrollers
+            var q = this.context.Mikrokontrollers.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
             .Include(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x=>x.Land)
             // .Include(x => x.MiniPc).ThenInclude(x=>x.Region).ThenInclude(x => x.Land)
             // .Include(x => x.Region).ThenInclude(x=>x.RegionPlant).ThenInclude(x=>x.Plant)
             .Include(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x=>x.Plant)
             .Include(x=>x.IotStatus)
             .Where(x=>LandId==-1? true: x.MiniPc.Region.LandId==LandId)
+            .Where(x => x.DeletedAt == null)
             .Select(x=> new Mikrokontroller{
                 CreatedAt=x.CreatedAt,
-                CreatedBy=x.CreatedBy,
+                CreatedById=x.CreatedById,
                 DeletedAt=x.DeletedAt,
                 DeletedBy=x.DeletedBy,
                 Description=x.Description,
@@ -160,30 +178,36 @@ namespace backend.Controllers
             };
         }
         [HttpPut("{MicroId}")]
-        public async Task UpdateMicro( int MicroId ,[FromBody] UpdateMicroDto model){
-            var result = await this.context.Mikrokontrollers.FindAsync(MicroId);
-            result.Name = model.Name;
-            result.Description = model.Description;
-            result.MiniPcId = model.MiniPcId;
-            await this.context.SaveChangesAsync();
+        public async Task<IActionResult> UpdateMicro( int MicroId ,[FromBody] UpdateMicroDto model){
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            var CheckMicroId = this.context.Mikrokontrollers.Where(x=>x.DeletedAt==null).Where(x => arrayId.Contains(x.CreatedById.Value)).Select(x => x.Id == MicroId).FirstOrDefault();
+            if(this.currentUser.RoleId != 3 && CheckMicroId != false){
+                var result = await context.Mikrokontrollers.Where(x=> x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==MicroId);
+                result.Name = model.Name;
+                result.Description = model.Description;
+                result.MiniPcId = model.MiniPcId;
+                await this.context.SaveChangesAsync();
+                return new OkObjectResult(new AppResponse { message="Success"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Akses Tidak Ditemukan"});
         }
         [HttpDelete("{MicroId}")]
-        public async Task DeleteMicro(int MicroId)
+        public async Task<IActionResult> DeleteMicro(int MicroId)
         {
-            var result = await this.context.Mikrokontrollers.FindAsync(MicroId);
-            this.context.Mikrokontrollers.Remove(result!);
-            await this.context.SaveChangesAsync();
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            var CheckMicroId = this.context.Mikrokontrollers.Where(x=>x.DeletedAt==null).Where(x => arrayId.Contains(x.CreatedById.Value)).Select(x => x.Id == MicroId).FirstOrDefault();
+            if(this.currentUser.RoleId != 3 && CheckMicroId != false){
+                var result = await context.Mikrokontrollers.Where(x=> x.DeletedAt==null).FirstOrDefaultAsync(x=>x.Id==MicroId);
+                this.context.Mikrokontrollers.Remove(result!);
+                await this.context.SaveChangesAsync();
+                return new OkObjectResult(new AppResponse { message="Success"});
+            }
+            return new BadRequestObjectResult(new AppResponse { message="Akses Tidak Ditemukan"});
         }
         [HttpGet("{RegionId}")]
         public async Task<IEnumerable<MikroNameDto>> GetMikroName(int RegionId){
-            // var obj = this.context.MiniPcs.Include(x => x.Region)
-            // .Select( x => x.Id).ToList();
-            // var obj_mikro = this.context.Mikrokontrollers.Include(x => x.MiniPc).Where(x => obj.Contains(x.MiniPcId))
-            // .Select(x => new MikroNameDto{
-            //     Id = x.Id,
-            //     Name = x.Name
-            // }).ToList();
-            return (await this.context.Mikrokontrollers
+            var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+            return (await this.context.Mikrokontrollers.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
             .Include(x=> x.MiniPc).ThenInclude(x => x.Region)
             .Where(x=>x.MiniPc.RegionId == RegionId)
             .Where(x=>x.Sensor.Count() > 0)
@@ -195,28 +219,8 @@ namespace backend.Controllers
         }
     [HttpGet("{RegionId}")]
     public async Task<IEnumerable<GraphDataParameterDto>> ShowSensorParameterWithRegion(int RegionId, [FromQuery]SensorParamRegionOverv model){
-        // var obj_baru = this.context.Sensors
-        // .Include(x => x.MikroController).ThenInclude(x => x.MiniPc)
-        // .Include(x => x.ParentTypes)
-        // .Where(x => model.MicroIds.Contains(x.MikroController.Id))
-        // .Where(x => model.ParentTypesIds.Contains(x.ParentTypeId)).Select(x => x.Id).ToList();
-        // var M = this.context.Mikrokontrollers
-        //         .Include(x => x.Sensor).ThenInclude(x => x.ParentTypes)
-        //         .Where(x => model.MicroIds.Contains(x.Id)).GroupBy(x =>)
-
-
-        // var datas = this.context.Datas
-        // .Include(x => x.Sensor).ThenInclude(x => x.MikroController).ThenInclude(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x => x.Plant)
-        // .Where(x => obj_baru.Contains(x.Sensor.Id))
-        // .Where(x => x.CreatedAt.Year == model.ParamDates.Year && 
-        // (model.ParamDates.Month == x.CreatedAt.Month) && (model.ParamDates.Day == x.CreatedAt.Day))
-        // .GroupBy(
-        //     x =>x.Sensor.Id,
-        //     x =>x,
-        //     (key, g) => new { SensorId = key, Datas = g.ToList() }
-        // )
-        // .ToList(); 
-        var datas = this.context.Sensors
+        var arrayId = this.context.Users.Where(x => x.institutedId == this.UserAcess.instId).Select(x => x.Id).ToList();
+        var datas = this.context.Sensors.Where(x => this.currentUser.RoleId == 1 ? true : this.currentUser.RoleId == 2 ? arrayId.Contains(x.CreatedById.Value): this.currentUser.RoleId == 3 ? arrayId.Contains(x.CreatedById.Value):false)
         .Include(y => y.Datas.Where(x => x.CreatedAt.Year == model.ParamDate.Year && 
         (model.ParamDate.Month == x.CreatedAt.Month) && (model.ParamDate.Day == x.CreatedAt.Day)))
         .Include(x => x.MikroController).ThenInclude(x => x.MiniPc).ThenInclude(x => x.Region).ThenInclude(x => x.Plant)
@@ -233,44 +237,6 @@ namespace backend.Controllers
             }).ToList()
         } ).ToList();
         Console.WriteLine(datas.Count());
-        // var res = new List<GraphDataParameterDto>();
-        // if(datas.Count() > 0){
-        // foreach(var obj in datas){
-        //     var temp = this.context.Sensors.Include(x => x.MikroController)
-        //     .Include(x => x.ParentTypes)
-        //     .Where(x => x.Id == obj.SensorId).FirstOrDefault();
-        //     res.Add(new GraphDataParameterDto{
-        //         MicroId = temp.MikroController.Id,
-        //         MicroName = temp.MikroController.Name,
-        //         ParentTypeId = temp.ParentTypeId,
-        //         ParentTypeName = temp.ParentTypes.Name,
-        //         Values = obj.Datas.Select(x => new GraphDataDto{
-        //             CreatedAt = x.CreatedAt,
-        //             Value = x.ValueParameter
-        //         }).ToList()
-        //     });
-        //     }            
-        // }
-        // else{
-        //     foreach(var obj in obj_baru){
-        //     var temp = this.context.Sensors.Include(x => x.MikroController)
-        //     .Include(x => x.ParentTypes)
-        //     .Where(x => x.Id == obj).FirstOrDefault();
-        //     res.Add(new GraphDataParameterDto{
-        //         MicroId = temp.MikroController.Id,
-        //         MicroName = temp.MikroController.Name,
-        //         ParentTypeId = temp.ParentTypeId,
-        //         ParentTypeName = temp.ParentTypes.Name,
-        //         Values = new List<GraphDataDto>()
-        //     });
-        //     }           
-        // }
-       
-        // var results = this.context.Sensors.
-        // Include(x => x.d).GroupBy(
-        // p => p.Id, 
-        // p => p.data,
-        // // (key, g) => new { PersonId = key, Cars = g.ToList() });
         return datas;
     }
     }
